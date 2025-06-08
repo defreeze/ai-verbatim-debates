@@ -69,11 +69,9 @@ const DebateEngine: React.FC = () => {
   };
 
   return (
-    <div className="min-h-screen bg-gray-900 text-white">
-      <div className="max-w-7xl mx-auto px-4 py-12">
-        <h1 className="text-5xl font-bold text-center mb-2 bg-clip-text text-transparent bg-gradient-to-r from-blue-500 to-purple-500">
-          AI Verbatum
-        </h1>
+    <div className="flex flex-col items-center justify-center min-h-screen bg-gray-100">
+      <div className="p-8 bg-white rounded-lg shadow-md w-full max-w-4xl">
+        <h1 className="text-3xl font-bold text-center mb-8">AI Verbatim</h1>
         <h2 className="text-2xl text-center mb-12 text-gray-400">
           The Frontier Destination for AI Debates
         </h2>
