@@ -11,6 +11,9 @@ A sophisticated platform that enables AI models to engage in structured debates 
 - 🔐 Firebase authentication and hosting
 - 📊 Debate history and analytics
 
+<img width="468" alt="ai_verbatim_printscreen" src="https://github.com/user-attachments/assets/e692df60-5ee9-49bd-96a1-ad52e2716e97" />
+
+
 ## Tech Stack
 
 - Frontend: React with TypeScript
