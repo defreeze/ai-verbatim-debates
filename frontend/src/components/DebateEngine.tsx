@@ -208,10 +208,11 @@ const DebateEngine: React.FC = () => {
     }
   });
 
-  const [debate, setDebate] = useState<Array<{ speaker: string; text: string }>>([]);
+  const [debate, setDebate] = useState<Array<{ speaker: string; text: string; summary: string }>>([]);
   const [isDebating, setIsDebating] = useState(false);
   const [currentRound, setCurrentRound] = useState(1);
   const [debateId, setDebateId] = useState<string | null>(null);
+  const [expandedArguments, setExpandedArguments] = useState<Set<string>>(new Set());
 
   const handleTopicChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     setSettings({ ...settings, topic: e.target.value });
@@ -255,11 +256,6 @@ const DebateEngine: React.FC = () => {
           title: "Round 3: Summary",
           description: "Final statements incorporating and addressing previous points."
         };
-      case 4:
-        return {
-          title: "Round 4: Overview",
-          description: "Key points and conclusions from both perspectives."
-        };
       default:
         return {
           title: `Round ${roundNumber}`,
@@ -270,19 +266,22 @@ const DebateEngine: React.FC = () => {
 
   const generateSystemPromptForRound = (roundNumber: number, stance: number, basePrompt: string): string => {
     const stanceText = stance > 0 ? "supporting" : "opposing";
+    const stanceIntensity = Math.abs(stance) >= 0.8 ? "strongly" : Math.abs(stance) >= 0.3 ? "moderately" : "";
+    const stanceDescription = `${stanceIntensity} ${stanceText}`.trim();
     const baseSystemPrompt = basePrompt || "You are a skilled debater focusing on logical arguments and clear communication.";
+    
+    // Common stance reinforcement for all rounds
+    const stanceReinforcement = `Remember, you are ${stanceDescription} this position. Your conviction should be unwavering, and your arguments should consistently reflect your ${stanceDescription} stance. Do not moderate or soften your position.`;
     
     switch (roundNumber) {
       case 1:
-        return `${baseSystemPrompt} In this constructive round, present your strongest initial arguments ${stanceText} the topic. Focus on establishing your key points without directly addressing the opponent. Keep it clear and impactful.`;
+        return `${baseSystemPrompt} In this constructive round, you are tasked with presenting your strongest initial arguments while ${stanceDescription} the topic. Focus on establishing your key points without directly addressing the opponent. Your arguments should be clear, impactful, and reflect your strong conviction. ${stanceReinforcement} Build a foundation that clearly shows your ${stanceDescription} position.`;
       case 2:
-        return `${baseSystemPrompt} This is the rebuttal round. Address the opponent's previous arguments while strengthening your position. Point out flaws in their reasoning and defend your stance against their points.`;
+        return `${baseSystemPrompt} This is the rebuttal round. While ${stanceDescription} the topic, address the opponent's previous arguments and strengthen your position. Point out fundamental flaws in their reasoning and defend your stance vigorously. ${stanceReinforcement} Use this opportunity to not only counter their points but to reinforce why your position is superior.`;
       case 3:
-        return `${baseSystemPrompt} For this summary round, provide a comprehensive overview of your position, incorporating how you've addressed opposing arguments. Emphasize the strength of your stance after debate.`;
-      case 4:
-        return `${baseSystemPrompt} In this final overview, present a simplified version of your main arguments and responses. Focus on clarity and accessibility, making complex points easy to understand.`;
+        return `${baseSystemPrompt} For this final summary round, provide a powerful and comprehensive overview of your position. You are still ${stanceDescription} the topic - this is not the time to compromise. Show how you've effectively addressed opposing arguments while maintaining your strong stance. ${stanceReinforcement} End with conviction, leaving no doubt about your position and why it's correct.`;
       default:
-        return baseSystemPrompt;
+        return `${baseSystemPrompt} ${stanceReinforcement}`;
     }
   };
 
@@ -293,12 +292,12 @@ const DebateEngine: React.FC = () => {
     setDebate([]);
     setCurrentRound(0);
     setIsDebating(true);
-    setSettings(prev => ({ ...prev, rounds: 4 })); // Force 4 rounds for this format
+    setSettings(prev => ({ ...prev, rounds: 3 })); // Set to 3 rounds
     
     try {
-      let currentDebate: Array<{ speaker: string; text: string }> = [];
+      let currentDebate: Array<{ speaker: string; text: string; summary: string }> = [];
       
-      for (let round = 1; round <= 4; round++) {
+      for (let round = 1; round <= 3; round++) {
         setCurrentRound(round);
         
         // Generate first speaker's argument with round-specific prompt
@@ -312,7 +311,7 @@ const DebateEngine: React.FC = () => {
         
         currentDebate = [
           ...currentDebate,
-          { speaker: "First Speaker", text: firstSpeakerArg }
+          { speaker: "First Speaker", text: firstSpeakerArg.text, summary: firstSpeakerArg.summary }
         ];
         setDebate(currentDebate);
         
@@ -329,11 +328,11 @@ const DebateEngine: React.FC = () => {
         
         currentDebate = [
           ...currentDebate,
-          { speaker: "Second Speaker", text: secondSpeakerArg }
+          { speaker: "Second Speaker", text: secondSpeakerArg.text, summary: secondSpeakerArg.summary }
         ];
         setDebate(currentDebate);
 
-        if (round < 4) {
+        if (round < 3) {
           await new Promise(resolve => setTimeout(resolve, 1000));
         }
       }
@@ -415,6 +414,19 @@ const DebateEngine: React.FC = () => {
 
   const toggleGeneralSettings = () => {
     setShowGeneralSettings(!showGeneralSettings);
+  };
+
+  const toggleArgumentExpansion = (roundIndex: number, speakerIndex: number) => {
+    const key = `${roundIndex}-${speakerIndex}`;
+    setExpandedArguments(prev => {
+      const newSet = new Set(prev);
+      if (newSet.has(key)) {
+        newSet.delete(key);
+      } else {
+        newSet.add(key);
+      }
+      return newSet;
+    });
   };
 
   return (
@@ -757,13 +769,39 @@ const DebateEngine: React.FC = () => {
                           border: `1px solid ${getStanceBackgroundColor(settings.model1.stance).replace('0.1', '0.3')}`,
                         }}
                       >
-                        <div className="flex items-center gap-3 mb-3">
+                        <div className="flex items-center justify-between mb-3">
                           <div className="text-lg font-semibold" style={{ color: getStanceColor(settings.model1.stance) }}>
                             First Speaker
                           </div>
+                          <button
+                            onClick={() => toggleArgumentExpansion(roundIndex, firstSpeakerIndex)}
+                            className="text-gray-400 hover:text-white transition-colors duration-200 flex items-center gap-1"
+                          >
+                            {expandedArguments.has(`${roundIndex}-${firstSpeakerIndex}`) ? (
+                              <>
+                                <span className="text-sm">Show Less</span>
+                                <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 15l7-7 7 7" />
+                                </svg>
+                              </>
+                            ) : (
+                              <>
+                                <span className="text-sm">Show More</span>
+                                <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
+                                </svg>
+                              </>
+                            )}
+                          </button>
                         </div>
                         <div className="text-gray-200 leading-relaxed whitespace-pre-wrap">
-                          {debate[firstSpeakerIndex].text}
+                          {expandedArguments.has(`${roundIndex}-${firstSpeakerIndex}`) ? (
+                            debate[firstSpeakerIndex].text
+                          ) : (
+                            <div>
+                              <p className="text-gray-300">{debate[firstSpeakerIndex].summary}</p>
+                            </div>
+                          )}
                         </div>
                       </div>
                     </motion.div>
@@ -783,13 +821,39 @@ const DebateEngine: React.FC = () => {
                           border: `1px solid ${getStanceBackgroundColor(settings.model2.stance).replace('0.1', '0.3')}`,
                         }}
                       >
-                        <div className="flex items-center gap-3 mb-3 justify-end">
+                        <div className="flex items-center justify-between mb-3">
+                          <button
+                            onClick={() => toggleArgumentExpansion(roundIndex, secondSpeakerIndex)}
+                            className="text-gray-400 hover:text-white transition-colors duration-200 flex items-center gap-1"
+                          >
+                            {expandedArguments.has(`${roundIndex}-${secondSpeakerIndex}`) ? (
+                              <>
+                                <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 15l7-7 7 7" />
+                                </svg>
+                                <span className="text-sm">Show Less</span>
+                              </>
+                            ) : (
+                              <>
+                                <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
+                                </svg>
+                                <span className="text-sm">Show More</span>
+                              </>
+                            )}
+                          </button>
                           <div className="text-lg font-semibold" style={{ color: getStanceColor(settings.model2.stance) }}>
                             Second Speaker
                           </div>
                         </div>
                         <div className="text-gray-200 leading-relaxed whitespace-pre-wrap">
-                          {debate[secondSpeakerIndex].text}
+                          {expandedArguments.has(`${roundIndex}-${secondSpeakerIndex}`) ? (
+                            debate[secondSpeakerIndex].text
+                          ) : (
+                            <div>
+                              <p className="text-gray-300">{debate[secondSpeakerIndex].summary}</p>
+                            </div>
+                          )}
                         </div>
                       </div>
                     </motion.div>

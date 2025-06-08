@@ -1,57 +1,97 @@
 import OpenAI from 'openai';
 
 if (!process.env.REACT_APP_OPENAI_API_KEY) {
-  throw new Error('Missing OpenAI API key in environment variables');
+  console.warn('OpenAI API key not found in environment variables. Make sure to set REACT_APP_OPENAI_API_KEY in your .env file');
 }
 
+// WARNING: This configuration allows browser usage, which means your API key could be exposed.
+// In a production environment, you should:
+// 1. Create a backend API that makes OpenAI calls
+// 2. Use environment variables on the server
+// 3. Never expose the API key in the frontend
 const openai = new OpenAI({
   apiKey: process.env.REACT_APP_OPENAI_API_KEY,
-  dangerouslyAllowBrowser: true
+  dangerouslyAllowBrowser: true // Only use this in development
 });
 
-export const generateArgument = async (
+export async function generateArgument(
   topic: string,
-  stance: 'for' | 'against' | number,
-  rhetoricStyle: string = 'standard',
-  systemPrompt: string = '',
-  previousArguments: Array<{ speaker: string; text: string }> = []
-) => {
+  stance: number,
+  rhetoricStyle: string,
+  systemPrompt: string,
+  previousArguments: Array<{ speaker: string; text: string; summary?: string }>
+): Promise<{ text: string; summary: string }> {
   try {
-    const stanceText = typeof stance === 'number' 
-      ? (stance > 0 ? 'for' : 'against')
-      : stance;
-
-    const contextPrompt = previousArguments.length > 0
-      ? `\nPrevious arguments in the debate:\n${previousArguments.map(arg => `${arg.speaker}: ${arg.text}`).join('\n')}`
-      : '';
-
-    const stylePrompt = rhetoricStyle !== 'standard'
-      ? `\nUse a ${rhetoricStyle} rhetoric style in your response.`
-      : '';
-
-    const customSystemPrompt = systemPrompt || "You are a skilled debater. Generate a concise, logical argument for the given stance on the topic. Keep responses under 150 words, focus on one strong point, and maintain a formal tone.";
-
-    const response = await openai.chat.completions.create({
-      model: "gpt-3.5-turbo",
+    const completion = await openai.chat.completions.create({
+      model: "gpt-4",
       messages: [
         {
           role: "system",
-          content: customSystemPrompt
+          content: `${systemPrompt}\n\nYou are participating in a debate. Generate both a detailed argument and a concise summary (max 3 sentences).`
         },
         {
           role: "user",
-          content: `Generate a ${stanceText} argument for the following topic: ${topic}${stylePrompt}${contextPrompt}`
+          content: `Topic: ${topic}\nStance: ${stance}\nStyle: ${rhetoricStyle}\n\nPrevious arguments: ${JSON.stringify(previousArguments)}`
         }
       ],
-      temperature: 0.7,
-      max_tokens: 200
+      functions: [
+        {
+          name: "generate_debate_response",
+          description: "Generate a debate response with both full argument and summary",
+          parameters: {
+            type: "object",
+            properties: {
+              text: {
+                type: "string",
+                description: "The full detailed argument"
+              },
+              summary: {
+                type: "string",
+                description: "A concise summary of the argument (max 3 sentences)"
+              }
+            },
+            required: ["text", "summary"]
+          }
+        }
+      ],
+      function_call: { name: "generate_debate_response" }
     });
 
-    return response.choices[0]?.message?.content || "Could not generate argument";
+    const functionCall = completion.choices[0].message.function_call;
+    if (!functionCall || !functionCall.arguments) {
+      throw new Error("No function call in response");
+    }
+
+    // Sanitize the response by removing control characters
+    const sanitizedArgs = functionCall.arguments.replace(/[\x00-\x1F\x7F-\x9F]/g, '');
+    
+    try {
+      const response = JSON.parse(sanitizedArgs);
+      return {
+        text: response.text,
+        summary: response.summary
+      };
+    } catch (parseError) {
+      console.error('Error parsing response:', parseError);
+      // Attempt a more aggressive cleanup if the first parse fails
+      const cleanedArgs = sanitizedArgs
+        .replace(/\\([^"\\\/bfnrtu])/g, '$1') // Remove invalid escapes
+        .replace(/\s+/g, ' ') // Normalize whitespace
+        .trim();
+      
+      const response = JSON.parse(cleanedArgs);
+      return {
+        text: response.text,
+        summary: response.summary
+      };
+    }
   } catch (error) {
     console.error('Error generating argument:', error);
-    throw new Error('Failed to generate argument');
+    return {
+      text: "An error occurred while generating the argument.",
+      summary: "Error generating response."
+    };
   }
-};
+}
 
 export default openai; 
