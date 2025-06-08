@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
 import { useAuth } from '../hooks/useAuth';
+import { motion } from 'framer-motion';
 
 interface AIModel {
   name: string;
@@ -56,82 +57,122 @@ const debateStyles = [
   {
     value: 'structured',
     label: 'Structured Debate',
-    description: 'Debate style: Formal format with opening statements, rebuttals, and closing'
+    description: 'Formal format with opening statements, rebuttals, and closing arguments'
   },
   {
     value: 'oxford',
     label: 'Oxford Style',
-    description: 'Debate style: Traditional format with proposition and opposition teams'
+    description: 'Traditional format with proposition and opposition teams'
   },
   {
     value: 'crossfire',
     label: 'Crossfire',
-    description: 'Debate style: Direct back-and-forth exchanges between debaters'
+    description: 'Direct back-and-forth exchanges between debaters'
   },
   {
     value: 'parliamentary',
     label: 'Parliamentary',
-    description: 'Debate style: Based on legislative debate procedures with points of order'
+    description: 'Based on legislative debate procedures with points of order'
   },
   {
-    value: 'lincoln_douglas',
-    label: 'Lincoln-Douglas',
-    description: 'Debate style: One-on-one value-based debate format'
+    value: 'comment_section',
+    label: 'Internet Comment Section',
+    description: 'Unhinged, passionate back-and-forth like in an online comment thread, facts optional'
   }
 ];
 
 // Popular debate topics
 const debateTopics = [
-  "Should artificial intelligence be given legal rights?",
-  "Is universal basic income necessary in an AI-driven economy?",
-  "Should social media companies be held responsible for misinformation?",
-  "Is space colonization essential for humanity's survival?",
-  "Should genetic engineering of human embryos be allowed?",
-  "Is a cashless society beneficial or harmful?",
-  "Should voting be mandatory in democratic countries?",
-  "Is nuclear energy the solution to climate change?",
-  "Should autonomous vehicles be required to prioritize passenger or pedestrian safety?",
-  "Is internet access a fundamental human right?",
-  "Should governments ban deepfake content entirely?",
-  "Is it ethical to use AI for hiring decisions?",
-  "Is cryptocurrency a viable replacement for traditional currency?",
-  "Is it ethical to create conscious AI?",
-  "Should autonomous drones be allowed in warfare?",
-  "Should human workers compete with AI for creative jobs?",
-  "Should governments ban deepfake content entirely?",
-  "Is it ethical to use AI for hiring decisions?",
-  "Is cryptocurrency a viable replacement for traditional currency?",
-  "Is it ethical to create conscious AI?",
-  "Should autonomous drones be allowed in warfare?",
-  "Should human workers compete with AI for creative jobs?",
-  "Should countries implement a four-day workweek?",
-  "Is privacy more important than national security?",
-  "Should fossil fuel companies be held legally liable for climate change?",
-  "Should healthcare be completely free in all countries?",
-  "Should the voting age be lowered to 16?",
-  "Should borders be open in a globalized world?",
-  "Is homeschooling better than traditional schooling?",
-  "Should meat consumption be taxed to fight climate change?",
-  "Is cancel culture a threat to free speech?",
-  "Should recreational drug use be legalized worldwide?",
-  "Should social media platforms be age-restricted to 16+?",
-  "Are beauty standards harmful to society?",
-  "Should all museums return artifacts to their countries of origin?",
-  "Is it ethical to have children in a world facing climate crisis?",
-  "Should nationalism be considered a threat to global peace?",
-  "Is space tourism worth the environmental cost?",
-  "Should humanity aim to become a multi-planet species or fix Earth first?",
-  "Should pineapple be allowed on pizza?",
-  "Is it better to be an early bird or a night owl?",
-  "Are e-books better than physical books?",
-  "Should we ban reality TV shows?",
-  "Is coffee superior to tea?",
-  "Should emojis be used in professional emails?",
-  "Is it acceptable to wear socks with sandals?",
-  "Is it better to vacation in the mountains or at the beach?",
-  "Should video games be considered a sport?",
-  "Is it better to binge-watch a series or watch it week by week?"
+  "AI should be given legal rights.",
+  "Universal basic income is necessary in an AI-driven economy.",
+  "Social media companies should be held responsible for misinformation.",
+  "Space colonization is essential for humanity's survival.",
+  "Genetic engineering of human embryos should be allowed.",
+  "A cashless society is beneficial.",
+  "Voting should be mandatory in democratic countries.",
+  "Nuclear energy is the solution to climate change.",
+  "Autonomous vehicles should prioritize passenger safety over pedestrian safety.",
+  "Internet access is a fundamental human right.",
+  "Governments should ban deepfake content entirely.",
+  "It is ethical to use AI for hiring decisions.",
+  "Cryptocurrency is a viable replacement for traditional currency.",
+  "It is ethical to create conscious AI.",
+  "Autonomous drones should be allowed in warfare.",
+  "Human workers should compete with AI for creative jobs.",
+  "Countries should implement a four-day workweek.",
+  "Privacy is more important than national security.",
+  "Fossil fuel companies should be held legally liable for climate change.",
+  "Healthcare should be completely free in all countries.",
+  "The voting age should be lowered to 16.",
+  "Borders should be open in a globalized world.",
+  "Homeschooling is better than traditional schooling.",
+  "Meat consumption should be taxed to fight climate change.",
+  "Cancel culture is a threat to free speech.",
+  "Recreational drug use should be legalized worldwide.",
+  "Social media platforms should be age-restricted to 16+.",
+  "Beauty standards are harmful to society.",
+  "Museums should return artifacts to their countries of origin.",
+  "It is ethical to have children in a world facing climate crisis.",
+  "Nationalism is a threat to global peace.",
+  "Space tourism is worth the environmental cost.",
+  "Humanity should become a multi-planet species.",
+  "Pineapple belongs on pizza.",
+  "Being an early bird is better than being a night owl.",
+  "E-books are better than physical books.",
+  "Reality TV shows should be banned.",
+  "Coffee is superior to tea.",
+  "Emojis should be used in professional emails.",
+  "It is acceptable to wear socks with sandals.",
+  "Vacations in the mountains are better than at the beach.",
+  "Video games should be considered a sport.",
+  "Binge-watching a series is better than watching it week by week.",
+  "Facial recognition technology should be banned in public spaces.",
+  "Time travel should be pursued as a scientific goal.",
+  "AI-generated art should be eligible for copyright protection.",
+  "The government should provide free public transportation.",
+  "Online anonymity should be restricted to prevent abuse.",
+  "Cloning extinct animals should be allowed.",
+  "Robot soldiers should be banned under international law.",
+  "Personal carbon footprint tracking should be mandatory.",
+  "Brain-computer interfaces should be regulated strictly.",
+  "Influencer marketing should be more heavily regulated.",
+  "AI-generated news articles should be clearly labeled.",
+  "The concept of marriage is outdated.",
+  "The world should adopt a universal language.",
+  "High-stakes standardized testing should be abolished.",
+  "The rich should pay significantly higher taxes.",
+  "Parents should have the right to genetically select traits for their children.",
+  "AI should be used to replace politicians.",
+  "Human life should be extended indefinitely through technology.",
+  "All museums should be free to the public.",
+  "Zero-waste lifestyles should be incentivized by governments.",
+  "Military service should be mandatory for all citizens.",
+  "Universal basic services are better than universal basic income.",
+  "Extreme sports should be banned for safety reasons.",
+  "Deep-sea mining should be prohibited.",
+  "Remote work should be the default for knowledge workers.",
+  "School uniforms should be mandatory.",
+  "The use of animals in entertainment should be banned.",
+  "Public surveillance cameras do more harm than good.",
+  "Space should be declared a global commons.",
+  "Human rights should extend to certain intelligent animals.",
+  "Free will is an illusion.",
+  "Consciousness can be fully explained by physical processes.",
+  "Morality is objective and universal.",
+  "The universe had a purpose in its creation.",
+  "Artificial consciousness is possible.",
+  "Personal identity persists after physical death.",
+  "Reality is fundamentally mathematical.",
+  "Time is an emergent illusion, not a fundamental property.",
+  "There are moral obligations to future generations.",
+  "Simulated beings should be granted rights.",
+  "The universe is infinite.",
+  "Truth is a social construct.",
+  "Beauty is an objective property.",
+  "The mind can exist independently of the body.",
+  "The concept of self is a useful fiction."
 ];
+
 
 const DebateEngine: React.FC = () => {
   const { user } = useAuth();
@@ -159,7 +200,7 @@ const DebateEngine: React.FC = () => {
     }
   });
 
-  const [debate, setDebate] = useState<Array<{ speaker: string; text: string }>>([]);
+  const [debate] = useState<Array<{ speaker: string; text: string }>>([]);
   const [isDebating, setIsDebating] = useState(false);
 
   const handleTopicChange = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -207,9 +248,6 @@ const DebateEngine: React.FC = () => {
   };
 
   const interpolateColor = (value: number): string => {
-    // Convert -1 to 1 range to 0 to 1 range
-    const normalizedValue = (value + 1) / 2;
-    
     // Define color stops with more vibrant colors
     const colors = {
       red: [220, 38, 38],    // red-600 - more vibrant red
@@ -267,70 +305,179 @@ const DebateEngine: React.FC = () => {
   return (
     <div className="container mx-auto px-4 py-8">
       <div className="max-w-6xl mx-auto">
-        <h1 className="text-3xl font-bold text-white mb-4 text-center">AI Verbatim</h1>
-        <p className="text-xl text-gray-400 mb-8 text-center">The Frontier Destination for AI Debates</p>
+        <motion.div
+          initial={{ opacity: 0, y: -20 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.7, ease: "easeOut" }}
+          className="text-center mb-12 relative overflow-hidden"
+        >
+          {/* Background scrolling topics */}
+          <div className="absolute inset-0 opacity-[0.05] overflow-hidden pointer-events-none">
+            <div className="grid grid-cols-3 gap-8 h-full">
+              {/* Left column - slower */}
+              <motion.div
+                initial={{ y: 0 }}
+                animate={{ y: "-50%" }}
+                transition={{
+                  duration: 25,
+                  repeat: Infinity,
+                  ease: "linear",
+                  repeatType: "loop"
+                }}
+                className="whitespace-pre-line text-right text-lg font-light"
+              >
+                {debateTopics.slice(0, 10).map(topic => 
+                  topic.length > 30 ? topic.substring(0, 30) + "..." : topic
+                ).join("\n\n")}
+              </motion.div>
+
+              {/* Middle column - faster */}
+              <motion.div
+                initial={{ y: "-25%" }}
+                animate={{ y: "-75%" }}
+                transition={{
+                  duration: 20,
+                  repeat: Infinity,
+                  ease: "linear",
+                  repeatType: "loop"
+                }}
+                className="whitespace-pre-line text-center text-lg font-medium"
+              >
+                {debateTopics.slice(10, 20).map(topic => 
+                  topic.length > 40 ? topic.substring(0, 40) + "..." : topic
+                ).join("\n\n")}
+              </motion.div>
+
+              {/* Right column - slowest */}
+              <motion.div
+                initial={{ y: "-15%" }}
+                animate={{ y: "-65%" }}
+                transition={{
+                  duration: 30,
+                  repeat: Infinity,
+                  ease: "linear",
+                  repeatType: "loop"
+                }}
+                className="whitespace-pre-line text-left text-lg font-light"
+              >
+                {debateTopics.slice(20, 30).map(topic => 
+                  topic.length > 30 ? topic.substring(0, 30) + "..." : topic
+                ).join("\n\n")}
+              </motion.div>
+            </div>
+          </div>
+
+          <motion.h1 
+            className="text-4xl md:text-5xl font-bold mb-4 bg-clip-text text-transparent bg-gradient-to-r from-blue-500 via-indigo-500 to-blue-600 relative z-10"
+            initial={{ backgroundPosition: "0% 50%" }}
+            animate={{ backgroundPosition: ["0% 50%", "100% 50%"] }}
+            transition={{ duration: 20, repeat: Infinity, ease: "linear" }}
+          >
+            AI Verbatim
+          </motion.h1>
+          <motion.p 
+            className="text-xl text-gray-400 font-light tracking-wide relative z-10"
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            transition={{ delay: 0.3, duration: 0.7 }}
+          >
+            The Frontier Destination of AI Debates
+          </motion.p>
+        </motion.div>
 
         <div className="bg-gray-800 rounded-lg p-6 mb-6">
-          <h2 className="text-lg font-semibold text-white mb-4">Debate Settings</h2>
           <div className="space-y-6">
             <div className="space-y-4">
-              <div className="grid grid-cols-[1fr,auto] gap-4">
-                <input
-                  type="text"
-                  value={settings.topic}
-                  onChange={handleTopicChange}
-                  className="w-full bg-gray-900 rounded px-4 py-2 text-white focus:outline-none focus:ring-2 focus:ring-blue-500"
-                  placeholder="Enter a topic for debate..."
-                />
-                <button
+              <div className="grid grid-cols-[1fr,auto] gap-4 py-4">
+                <div className="relative">
+                  <label className="block text-lg font-medium mb-2 bg-clip-text text-transparent bg-gradient-to-r from-blue-400 to-indigo-500">
+                  Debate topic
+                  </label>
+                  <motion.input
+                    type="text"
+                    value={settings.topic}
+                    onChange={handleTopicChange}
+                    className="w-full bg-gray-900/50 rounded-lg px-6 py-4 text-lg text-white focus:outline-none focus:ring-2 focus:ring-blue-500/50 focus:bg-gray-900/70 transition-all duration-300 backdrop-blur-sm"
+                    placeholder="Enter a topic to debate..."
+                    whileFocus={{ scale: 1.01 }}
+                    transition={{ type: "spring", stiffness: 300, damping: 20 }}
+                  />
+                </div>
+                <motion.button
                   onClick={handleRandomTopic}
-                  className="bg-blue-600 hover:bg-blue-700 px-3 py-2 rounded text-white flex items-center gap-2 transition-colors"
+                  className="bg-blue-600 hover:bg-blue-700 w-[60px] h-[60px] rounded-lg text-white flex items-center justify-center transition-colors self-end"
+                  whileHover={{ scale: 1.02 }}
+                  whileTap={{ scale: 0.98 }}
                 >
-                  <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" viewBox="0 0 20 20" fill="currentColor">
+                  <svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6" viewBox="0 0 20 20" fill="currentColor">
                     <path fillRule="evenodd" d="M4 2a1 1 0 011 1v2.101a7.002 7.002 0 0111.601 2.566 1 1 0 11-1.885.666A5.002 5.002 0 005.999 7H9a1 1 0 010 2H4a1 1 0 01-1-1V3a1 1 0 011-1zm.008 9.057a1 1 0 011.276.61A5.002 5.002 0 0014.001 13H11a1 1 0 110-2h5a1 1 0 011 1v5a1 1 0 11-2 0v-2.101a7.002 7.002 0 01-11.601-2.566 1 1 0 01.61-1.276z" clipRule="evenodd" />
                   </svg>
-                  Random Topic
+                </motion.button>
+              </div>
+
+              <div className="flex justify-between items-center mt-6">
+                <button
+                  onClick={() => toggleGuidance()}
+                  className="text-gray-300 hover:text-white flex items-center gap-2"
+                >
+                  <svg
+                    xmlns="http://www.w3.org/2000/svg"
+                    className={`h-4 w-4 transition-transform ${showAdvancedSettings ? 'rotate-180' : ''}`}
+                    fill="none"
+                    viewBox="0 0 24 24"
+                    stroke="currentColor"
+                  >
+                    <path
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                      strokeWidth={2}
+                      d="M19 9l-7 7-7-7"
+                    />
+                  </svg>
+                  Advanced Settings
                 </button>
               </div>
 
-              <div className="grid grid-cols-[1fr,1fr,auto] gap-4">
-                <div>
-                  <select
-                    value={settings.debateStyle}
-                    onChange={(e) => setSettings({ ...settings, debateStyle: e.target.value })}
-                    className="w-full bg-gray-900 rounded px-3 py-2 text-white"
-                  >
-                    {debateStyles.map((style) => (
-                      <option key={style.value} value={style.value} className="text-white bg-gray-800">
-                        {style.label}
-                      </option>
-                    ))}
-                  </select>
-                  <p className="text-sm text-gray-400 mt-1">
-                    {debateStyles.find(style => style.value === settings.debateStyle)?.description}
-                  </p>
-                </div>
-                <div></div>
+              {showAdvancedSettings && (
+                <div className="mt-4 space-y-6 bg-gray-900/30 p-4 rounded-lg">
+                  <div>
+                    <label className="block mb-2 text-gray-300">Debate Style</label>
+                    <select
+                      value={settings.debateStyle}
+                      onChange={(e) => setSettings({ ...settings, debateStyle: e.target.value })}
+                      className="w-full bg-gray-900 rounded px-3 py-2 text-white"
+                    >
+                      {debateStyles.map((style) => (
+                        <option key={style.value} value={style.value} className="text-white bg-gray-800">
+                          {style.label}
+                        </option>
+                      ))}
+                    </select>
+                    <p className="text-sm text-gray-400 mt-1">
+                      {debateStyles.find(style => style.value === settings.debateStyle)?.description}
+                    </p>
+                  </div>
 
-                <div className="flex items-center gap-3 group relative">
-                  <span className="text-white">Moderator</span>
-                  <button
-                    onClick={() => setSettings({ ...settings, moderatorEnabled: !settings.moderatorEnabled })}
-                    className={`relative inline-flex items-center h-6 rounded-full w-11 transition-colors focus:outline-none ${
-                      settings.moderatorEnabled ? 'bg-blue-600' : 'bg-gray-600'
-                    }`}
-                  >
-                    <span
-                      className={`inline-block w-4 h-4 transform transition-transform bg-white rounded-full ${
-                        settings.moderatorEnabled ? 'translate-x-6' : 'translate-x-1'
+                  <div className="flex items-center gap-3 group relative">
+                    <span className="text-white">Moderator</span>
+                    <button
+                      onClick={() => setSettings({ ...settings, moderatorEnabled: !settings.moderatorEnabled })}
+                      className={`relative inline-flex items-center h-6 rounded-full w-11 transition-colors focus:outline-none ${
+                        settings.moderatorEnabled ? 'bg-blue-600' : 'bg-gray-600'
                       }`}
-                    />
-                  </button>
-                  <div className="absolute right-full top-0 hidden group-hover:block w-64 bg-gray-900 text-sm text-gray-300 p-2 rounded shadow-lg z-50 transform -translate-y-full mr-2">
-                    When enabled, an AI moderator will guide the debate, ensure fair play, and provide structured transitions between arguments
+                    >
+                      <span
+                        className={`inline-block w-4 h-4 transform transition-transform bg-white rounded-full ${
+                          settings.moderatorEnabled ? 'translate-x-6' : 'translate-x-1'
+                        }`}
+                      />
+                    </button>
+                    <div className="absolute bottom-full left-0 hidden group-hover:block w-64 bg-gray-900 text-sm text-gray-300 p-2 rounded shadow-lg z-50 mb-2">
+                      When enabled, an AI moderator will guide the debate, ensure fair play, and provide structured transitions between arguments
+                    </div>
                   </div>
                 </div>
-              </div>
+              )}
             </div>
 
             <div className="border-t border-gray-700/50 my-6"></div>
@@ -346,19 +493,6 @@ const DebateEngine: React.FC = () => {
                   >
                     <h3 className="text-xl mb-4 text-white">AI Debater {modelNum}</h3>
                     <div className="space-y-4">
-                      <div>
-                        <label className="block mb-1 text-gray-300">Model</label>
-                        <select
-                          value={model.name}
-                          onChange={(e) => handleModelSettingChange(modelNum as 1 | 2, 'name', e.target.value)}
-                          className="w-full rounded px-3 py-2 text-white transition-colors duration-300"
-                          style={{ backgroundColor: getInputBackgroundColor(model.stance) }}
-                        >
-                          <option value="gpt-4" className="text-white bg-gray-800">GPT-4</option>
-                          <option value="gpt-3.5-turbo" className="text-white bg-gray-800">GPT-3.5 Turbo</option>
-                        </select>
-                      </div>
-                      
                       <div>
                         <label className="block mb-1 text-gray-300">Argument Stance</label>
                         <div className="flex items-center space-x-2">
@@ -380,6 +514,19 @@ const DebateEngine: React.FC = () => {
                         <div className="text-sm mt-1 text-center" style={{ color: getStanceColor(model.stance) }}>
                           {getStanceLabel(model.stance)}
                         </div>
+                      </div>
+
+                      <div>
+                        <label className="block mb-1 text-gray-300">Model</label>
+                        <select
+                          value={model.name}
+                          onChange={(e) => handleModelSettingChange(modelNum as 1 | 2, 'name', e.target.value)}
+                          className="w-full rounded px-3 py-2 text-white transition-colors duration-300"
+                          style={{ backgroundColor: getInputBackgroundColor(model.stance) }}
+                        >
+                          <option value="gpt-4" className="text-white bg-gray-800">GPT-4</option>
+                          <option value="gpt-3.5-turbo" className="text-white bg-gray-800">GPT-3.5 Turbo</option>
+                        </select>
                       </div>
 
                       <div>
@@ -432,7 +579,7 @@ const DebateEngine: React.FC = () => {
                               onChange={(e) => handleModelSettingChange(modelNum as 1 | 2, 'systemPrompt', e.target.value)}
                               className="w-full rounded px-3 py-2 h-24 text-white transition-colors duration-300"
                               style={{ backgroundColor: getInputBackgroundColor(model.stance) }}
-                              placeholder="Add details to adjust model behaviour such as 'Debate like the Pope, talk from the perspective of a cat'"
+                              placeholder="Add details to adjust model behaviour such as 'Debate like the Pope, talk from the perspective of a cat...'"
                             />
                           </>
                         )}
