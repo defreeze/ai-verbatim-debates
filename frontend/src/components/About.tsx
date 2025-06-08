@@ -2,73 +2,90 @@ import React from 'react';
 
 const About: React.FC = () => {
   return (
-    <div className="min-h-screen bg-gray-100 py-12 px-4 sm:px-6 lg:px-8">
-      <div className="max-w-4xl mx-auto">
-        <h1 className="text-4xl font-bold text-gray-900 mb-8">About AI Verbatim</h1>
+    <div className="container mx-auto px-4 py-8">
+      <div className="max-w-6xl mx-auto">
+        <h1 className="text-3xl font-bold text-white mb-4 text-center">About AI Verbatim</h1>
         
         <div className="space-y-8">
-          <section className="bg-white shadow-lg rounded-lg p-6">
-            <h2 className="text-2xl font-semibold text-gray-800 mb-4">Technical Overview</h2>
-            <p className="text-gray-600 mb-4">
-              AI Verbatim is a cutting-edge platform that facilitates structured debates between AI language models.
-              Our system leverages state-of-the-art LLMs and advanced prompt engineering to create meaningful discourse.
+          {/* Introduction Section */}
+          <section className="bg-gray-800 rounded-lg p-6 shadow-xl">
+            <h2 className="text-2xl font-semibold text-white mb-4">The Future of AI Debate</h2>
+            <p className="text-gray-300 mb-4">
+              AI Verbatim represents a groundbreaking approach to understanding artificial intelligence through structured debate.
+              By pitting different language models against each other, we create a unique window into their reasoning capabilities,
+              biases, and potential limitations.
             </p>
           </section>
 
-          <section className="bg-white shadow-lg rounded-lg p-6">
-            <h2 className="text-2xl font-semibold text-gray-800 mb-4">Architecture</h2>
+          {/* Research Background */}
+          <section className="bg-gray-800 rounded-lg p-6 shadow-xl">
+            <h2 className="text-2xl font-semibold text-white mb-4">Research Foundations</h2>
             <div className="space-y-4">
               <div>
-                <h3 className="text-xl font-medium text-gray-800 mb-2">Frontend</h3>
-                <ul className="list-disc list-inside text-gray-600">
-                  <li>React with TypeScript for type safety</li>
-                  <li>Tailwind CSS for modern, responsive design</li>
-                  <li>React Router for seamless navigation</li>
-                </ul>
-              </div>
-              <div>
-                <h3 className="text-xl font-medium text-gray-800 mb-2">Backend</h3>
-                <ul className="list-disc list-inside text-gray-600">
-                  <li>Django REST Framework for robust API endpoints</li>
-                  <li>PostgreSQL for reliable data persistence</li>
-                  <li>Redis for caching and real-time updates</li>
+                <h3 className="text-xl font-medium text-white mb-2">Key Research Papers</h3>
+                <ul className="list-disc list-inside text-gray-300 space-y-2">
+                  <li>"Language Models are Few-Shot Learners" (Brown et al., 2020) - Demonstrated the emergent reasoning capabilities of large language models</li>
+                  <li>"Constitutional AI: A Framework for Machine Learning Systems" (Askell et al., 2023) - Explored ways to make AI systems more reliable and aligned with human values</li>
+                  <li>"Chain of Thought Prompting Elicits Reasoning in Large Language Models" (Wei et al., 2022) - Showed how structured prompting can improve reasoning</li>
                 </ul>
               </div>
             </div>
           </section>
 
-          <section className="bg-white shadow-lg rounded-lg p-6">
-            <h2 className="text-2xl font-semibold text-gray-800 mb-4">Debate Engine</h2>
+          {/* Why It Matters */}
+          <section className="bg-gray-800 rounded-lg p-6 shadow-xl">
+            <h2 className="text-2xl font-semibold text-white mb-4">Why AI Debates Matter</h2>
             <div className="space-y-4">
-              <p className="text-gray-600">
-                Our debate engine employs several sophisticated techniques:
+              <p className="text-gray-300">
+                AI debates serve multiple crucial purposes in advancing our understanding of language models:
               </p>
-              <ul className="list-disc list-inside text-gray-600">
-                <li>Dynamic temperature adjustment for varied response styles</li>
-                <li>Context-aware system prompts for consistent debater personas</li>
-                <li>Token optimization for maximum debate depth</li>
-                <li>Real-time fact-checking and source citation</li>
+              <ul className="list-disc list-inside text-gray-300 space-y-2">
+                <li>Revealing reasoning patterns and logical frameworks used by different models</li>
+                <li>Exposing potential biases and limitations in AI thinking</li>
+                <li>Demonstrating the impact of different training approaches and model architectures</li>
+                <li>Providing insights into AI alignment and safety considerations</li>
               </ul>
             </div>
           </section>
 
-          <section className="bg-white shadow-lg rounded-lg p-6">
-            <h2 className="text-2xl font-semibold text-gray-800 mb-4">Research Applications</h2>
+          {/* How to Use Effectively */}
+          <section className="bg-gray-800 rounded-lg p-6 shadow-xl">
+            <h2 className="text-2xl font-semibold text-white mb-4">Maximizing Debate Value</h2>
             <div className="space-y-4">
-              <p className="text-gray-600">
-                AI Verbatim provides valuable insights for researchers in:
-              </p>
-              <ul className="list-disc list-inside text-gray-600">
-                <li>Natural Language Processing</li>
-                <li>Argument Mining</li>
-                <li>Cognitive Science</li>
-                <li>Human-AI Interaction</li>
+              <h3 className="text-xl font-medium text-white mb-2">Best Practices</h3>
+              <ul className="list-disc list-inside text-gray-300 space-y-2">
+                <li>Choose contrasting topics that challenge different aspects of AI reasoning</li>
+                <li>Experiment with temperature settings to balance creativity and logical consistency</li>
+                <li>Use system prompts that encourage specific debate styles or philosophical frameworks</li>
+                <li>Compare responses across different model versions to track improvements</li>
               </ul>
-              <p className="text-gray-600 mt-4">
-                Researchers can access detailed debate logs, model parameters, and performance metrics
-                for in-depth analysis of AI reasoning and argumentation patterns.
-              </p>
             </div>
+          </section>
+
+          {/* Real-World Applications */}
+          <section className="bg-gray-800 rounded-lg p-6 shadow-xl">
+            <h2 className="text-2xl font-semibold text-white mb-4">Applications & Impact</h2>
+            <div className="space-y-4">
+              <p className="text-gray-300">
+                The insights gained from AI debates have practical applications across multiple fields:
+              </p>
+              <ul className="list-disc list-inside text-gray-300 space-y-2">
+                <li>Education: Understanding complex topics through multiple AI perspectives</li>
+                <li>Research: Exploring AI reasoning and decision-making processes</li>
+                <li>Ethics: Investigating AI biases and moral reasoning capabilities</li>
+                <li>Development: Improving prompt engineering and model training techniques</li>
+              </ul>
+            </div>
+          </section>
+
+          {/* Future Directions */}
+          <section className="bg-gray-800 rounded-lg p-6 shadow-xl">
+            <h2 className="text-2xl font-semibold text-white mb-4">Looking Forward</h2>
+            <p className="text-gray-300">
+              As language models continue to evolve, AI Verbatim will expand to incorporate new capabilities,
+              including multi-model debates, real-time fact-checking, and integration with specialized domain experts.
+              Our goal is to create an ever-more-powerful tool for understanding and improving AI reasoning.
+            </p>
           </section>
         </div>
       </div>
