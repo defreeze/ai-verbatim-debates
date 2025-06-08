@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useMemo } from 'react';
 import { useAuth } from '../hooks/useAuth';
 import { motion } from 'framer-motion';
 
@@ -28,28 +28,28 @@ const rhetoricStyles = [
   },
   {
     value: 'formal',
-    label: 'Formal / Academic',
+    label: 'Formal',
     description: 'Uses scholarly language, cites research, and maintains professional tone'
   },
   {
     value: 'casual',
-    label: 'Casual / Conversational',
+    label: 'Casual',
     description: 'Adopts a friendly, approachable tone with everyday language'
   },
   {
     value: 'emotional',
-    label: 'Emotional / Passionate',
+    label: 'Emotional',
     description: 'Emphasizes personal impact and appeals to emotions'
   },
   {
     value: 'factual',
-    label: 'Dry / Factual',
+    label: 'Factual',
     description: 'Focuses purely on data and objective information'
   },
   {
-    value: 'persuasive',
-    label: 'Persuasive / Rhetorical',
-    description: 'Uses rhetorical devices and compelling arguments'
+    value: 'adversarial',
+    label: 'Adversarial',
+    description: 'Seeks to discredit the opponent and undermine their arguments'
   }
 ];
 
@@ -177,6 +177,13 @@ const debateTopics = [
 const DebateEngine: React.FC = () => {
   const { user } = useAuth();
   const [showAdvancedSettings, setShowAdvancedSettings] = useState(false);
+  const [showGeneralSettings, setShowGeneralSettings] = useState(false);
+  
+  // Randomly determine initial stances
+  const initialStances = useMemo(() => {
+    return Math.random() < 0.5 ? { model1: -1, model2: 1 } : { model1: 1, model2: -1 };
+  }, []);
+
   const [settings, setSettings] = useState<DebateSettings>({
     topic: '',
     rounds: 3,
@@ -184,7 +191,7 @@ const DebateEngine: React.FC = () => {
     debateStyle: 'structured',
     model1: {
       name: 'gpt-4',
-      stance: -1,
+      stance: initialStances.model1,
       rhetoricStyle: 'standard',
       maxTokens: 1000,
       systemPrompt: '',
@@ -192,7 +199,7 @@ const DebateEngine: React.FC = () => {
     },
     model2: {
       name: 'gpt-4',
-      stance: 1,
+      stance: initialStances.model2,
       rhetoricStyle: 'standard',
       maxTokens: 1000,
       systemPrompt: '',
@@ -302,6 +309,10 @@ const DebateEngine: React.FC = () => {
     });
   };
 
+  const toggleGeneralSettings = () => {
+    setShowGeneralSettings(!showGeneralSettings);
+  };
+
   return (
     <div className="container mx-auto px-4 py-8">
       <div className="max-w-6xl mx-auto">
@@ -341,7 +352,7 @@ const DebateEngine: React.FC = () => {
                   ease: "linear",
                   repeatType: "loop"
                 }}
-                className="whitespace-pre-line text-center text-lg font-medium"
+                className="whitespace-pre-line text-center text-lg font-light"
               >
                 {debateTopics.slice(10, 20).map(topic => 
                   topic.length > 40 ? topic.substring(0, 40) + "..." : topic
@@ -417,12 +428,12 @@ const DebateEngine: React.FC = () => {
 
               <div className="flex justify-between items-center mt-6">
                 <button
-                  onClick={() => toggleGuidance()}
+                  onClick={() => toggleGeneralSettings()}
                   className="text-gray-300 hover:text-white flex items-center gap-2"
                 >
                   <svg
                     xmlns="http://www.w3.org/2000/svg"
-                    className={`h-4 w-4 transition-transform ${showAdvancedSettings ? 'rotate-180' : ''}`}
+                    className={`h-4 w-4 transition-transform ${showGeneralSettings ? 'rotate-180' : ''}`}
                     fill="none"
                     viewBox="0 0 24 24"
                     stroke="currentColor"
@@ -438,10 +449,10 @@ const DebateEngine: React.FC = () => {
                 </button>
               </div>
 
-              {showAdvancedSettings && (
+              {showGeneralSettings && (
                 <div className="mt-4 space-y-6 bg-gray-900/30 p-4 rounded-lg">
                   <div>
-                    <label className="block mb-2 text-gray-300">Debate Style</label>
+                    <label className="block mb-2 text-gray-300">Debate Format</label>
                     <select
                       value={settings.debateStyle}
                       onChange={(e) => setSettings({ ...settings, debateStyle: e.target.value })}
@@ -491,7 +502,7 @@ const DebateEngine: React.FC = () => {
                     className="rounded-lg p-4 transition-colors duration-300"
                     style={{ backgroundColor: getStanceBackgroundColor(model.stance) }}
                   >
-                    <h3 className="text-xl mb-4 text-white">AI Debater {modelNum}</h3>
+                    <h3 className="text-xl mb-4 text-white">{modelNum === 1 ? "First Speaker" : "Second Speaker"}</h3>
                     <div className="space-y-4">
                       <div>
                         <label className="block mb-1 text-gray-300">Argument Stance</label>
@@ -516,74 +527,77 @@ const DebateEngine: React.FC = () => {
                         </div>
                       </div>
 
-                      <div>
-                        <label className="block mb-1 text-gray-300">Model</label>
-                        <select
-                          value={model.name}
-                          onChange={(e) => handleModelSettingChange(modelNum as 1 | 2, 'name', e.target.value)}
-                          className="w-full rounded px-3 py-2 text-white transition-colors duration-300"
-                          style={{ backgroundColor: getInputBackgroundColor(model.stance) }}
+                      <div className="flex justify-between items-center mt-4">
+                        <button
+                          onClick={() => toggleGuidance()}
+                          className="text-gray-300 hover:text-white flex items-center gap-2 text-sm"
                         >
-                          <option value="gpt-4" className="text-white bg-gray-800">GPT-4</option>
-                          <option value="gpt-3.5-turbo" className="text-white bg-gray-800">GPT-3.5 Turbo</option>
-                        </select>
-                      </div>
-
-                      <div>
-                        <label className="block mb-1 text-gray-300">Rhetoric Style</label>
-                        <select
-                          value={model.rhetoricStyle}
-                          onChange={(e) => handleModelSettingChange(modelNum as 1 | 2, 'rhetoricStyle', e.target.value)}
-                          className="w-full rounded px-3 py-2 text-white transition-colors duration-300"
-                          style={{ backgroundColor: getInputBackgroundColor(model.stance) }}
-                        >
-                          {rhetoricStyles.map((style) => (
-                            <option key={style.value} value={style.value} className="text-white bg-gray-800">
-                              {style.label}
-                            </option>
-                          ))}
-                        </select>
-                        <div className="text-sm text-gray-400 mt-1">
-                          {rhetoricStyles.find(style => style.value === model.rhetoricStyle)?.description}
-                        </div>
-                      </div>
-
-                      <div>
-                        <div className="flex justify-between items-center mb-1">
-                          <button
-                            onClick={() => toggleGuidance()}
-                            className="text-gray-300 hover:text-white flex items-center gap-2 text-sm"
+                          <svg
+                            xmlns="http://www.w3.org/2000/svg"
+                            className={`h-4 w-4 transition-transform ${showAdvancedSettings ? 'rotate-180' : ''}`}
+                            fill="none"
+                            viewBox="0 0 24 24"
+                            stroke="currentColor"
                           >
-                            <svg
-                              xmlns="http://www.w3.org/2000/svg"
-                              className={`h-4 w-4 transition-transform ${showAdvancedSettings ? 'rotate-180' : ''}`}
-                              fill="none"
-                              viewBox="0 0 24 24"
-                              stroke="currentColor"
+                            <path
+                              strokeLinecap="round"
+                              strokeLinejoin="round"
+                              strokeWidth={2}
+                              d="M19 9l-7 7-7-7"
+                            />
+                          </svg>
+                          Advanced Settings
+                        </button>
+                      </div>
+
+                      {showAdvancedSettings && (
+                        <div className="space-y-4 mt-4 pt-4 border-t border-gray-700/50">
+                          <div>
+                            <label className="block mb-1 text-gray-300">Model</label>
+                            <select
+                              value={model.name}
+                              onChange={(e) => handleModelSettingChange(modelNum as 1 | 2, 'name', e.target.value)}
+                              className="w-full rounded px-3 py-2 text-white transition-colors duration-300"
+                              style={{ backgroundColor: getInputBackgroundColor(model.stance) }}
                             >
-                              <path
-                                strokeLinecap="round"
-                                strokeLinejoin="round"
-                                strokeWidth={2}
-                                d="M19 9l-7 7-7-7"
-                              />
-                            </svg>
-                            Advanced Settings
-                          </button>
-                        </div>
-                        {showAdvancedSettings && (
-                          <>
-                            <label className="block text-sm text-gray-300 mb-1">Debate Instructions</label>
+                              <option value="gpt-4" className="text-white bg-gray-800">GPT-4</option>
+                              <option value="gpt-3.5-turbo" className="text-white bg-gray-800">GPT-3.5 Turbo</option>
+                            </select>
+                          </div>
+
+                          <div>
+                            <label className="block mb-1 text-gray-300">Rhetoric Style</label>
+                            <select
+                              value={model.rhetoricStyle}
+                              onChange={(e) => handleModelSettingChange(modelNum as 1 | 2, 'rhetoricStyle', e.target.value)}
+                              className="w-full rounded px-3 py-2 text-white transition-colors duration-300"
+                              style={{ backgroundColor: getInputBackgroundColor(model.stance) }}
+                            >
+                              {rhetoricStyles.map((style) => (
+                                <option key={style.value} value={style.value} className="text-white bg-gray-800">
+                                  {style.label}
+                                </option>
+                              ))}
+                            </select>
+                            <div className="text-sm text-gray-400 mt-1">
+                              {rhetoricStyles.find(style => style.value === model.rhetoricStyle)?.description}
+                            </div>
+                          </div>
+
+                          <div>
+                            <label className="block mb-1 text-gray-300">Personality & Behavior Hints</label>
                             <textarea
                               value={model.systemPrompt}
                               onChange={(e) => handleModelSettingChange(modelNum as 1 | 2, 'systemPrompt', e.target.value)}
                               className="w-full rounded px-3 py-2 h-24 text-white transition-colors duration-300"
-                              style={{ backgroundColor: getInputBackgroundColor(model.stance) }}
-                              placeholder="Add details to adjust model behaviour such as 'Debate like the Pope, talk from the perspective of a cat...'"
+                              style={{ 
+                                backgroundColor: getInputBackgroundColor(model.stance).replace('0.3', '0.15')
+                              }}
+                              placeholder="Add details to adjust model behaviour such as 'Debate like the Pope' or 'talk from the perspective of a cat'..."
                             />
-                          </>
-                        )}
-                      </div>
+                          </div>
+                        </div>
+                      )}
                     </div>
                   </div>
                 );
