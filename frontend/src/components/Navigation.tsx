@@ -16,8 +16,8 @@ const Navigation: React.FC = () => {
         <div className="flex justify-between h-16">
           <div className="flex">
             <div className="flex-shrink-0 flex items-center">
-              <Link to="/" className="text-xl font-bold text-white">
-                AI Verbatum
+              <Link to="/" className="text-2xl font-bold text-white">
+                AI Verbatim
               </Link>
             </div>
             <div className="hidden sm:ml-6 sm:flex sm:space-x-8">

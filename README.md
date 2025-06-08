@@ -1,4 +1,4 @@
-# AI Verbatum: The Frontier Destination for AI Debates
+# AI Verbatim: The Frontier Destination for AI Debates
 
 A sophisticated platform that enables AI models to engage in structured debates on user-provided topics. Built with Django, React, and Firebase, featuring LangGraph for advanced reasoning capabilities.
 
