@@ -1,6 +1,7 @@
 import React, { useState, useMemo } from 'react';
 import { useAuth } from '../hooks/useAuth';
 import { motion } from 'framer-motion';
+import { generateArgument } from '../config/openai';
 
 interface AIModel {
   name: string;
@@ -207,8 +208,10 @@ const DebateEngine: React.FC = () => {
     }
   });
 
-  const [debate] = useState<Array<{ speaker: string; text: string }>>([]);
+  const [debate, setDebate] = useState<Array<{ speaker: string; text: string }>>([]);
   const [isDebating, setIsDebating] = useState(false);
+  const [currentRound, setCurrentRound] = useState(1);
+  const [debateId, setDebateId] = useState<string | null>(null);
 
   const handleTopicChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     setSettings({ ...settings, topic: e.target.value });
@@ -235,10 +238,111 @@ const DebateEngine: React.FC = () => {
     });
   };
 
+  const getRoundTitle = (roundNumber: number): { title: string; description: string } => {
+    switch (roundNumber) {
+      case 1:
+        return {
+          title: "Round 1: Constructive Arguments",
+          description: "Each speaker presents their initial position with strongest possible arguments."
+        };
+      case 2:
+        return {
+          title: "Round 2: Rebuttal",
+          description: "Speakers address opposing arguments and strengthen their positions."
+        };
+      case 3:
+        return {
+          title: "Round 3: Summary",
+          description: "Final statements incorporating and addressing previous points."
+        };
+      case 4:
+        return {
+          title: "Round 4: Overview",
+          description: "Key points and conclusions from both perspectives."
+        };
+      default:
+        return {
+          title: `Round ${roundNumber}`,
+          description: ""
+        };
+    }
+  };
+
+  const generateSystemPromptForRound = (roundNumber: number, stance: number, basePrompt: string): string => {
+    const stanceText = stance > 0 ? "supporting" : "opposing";
+    const baseSystemPrompt = basePrompt || "You are a skilled debater focusing on logical arguments and clear communication.";
+    
+    switch (roundNumber) {
+      case 1:
+        return `${baseSystemPrompt} In this constructive round, present your strongest initial arguments ${stanceText} the topic. Focus on establishing your key points without directly addressing the opponent. Keep it clear and impactful.`;
+      case 2:
+        return `${baseSystemPrompt} This is the rebuttal round. Address the opponent's previous arguments while strengthening your position. Point out flaws in their reasoning and defend your stance against their points.`;
+      case 3:
+        return `${baseSystemPrompt} For this summary round, provide a comprehensive overview of your position, incorporating how you've addressed opposing arguments. Emphasize the strength of your stance after debate.`;
+      case 4:
+        return `${baseSystemPrompt} In this final overview, present a simplified version of your main arguments and responses. Focus on clarity and accessibility, making complex points easy to understand.`;
+      default:
+        return baseSystemPrompt;
+    }
+  };
+
   const startDebate = async () => {
     if (!settings.topic) return;
+    
+    // Clear existing debate state
+    setDebate([]);
+    setCurrentRound(0);
     setIsDebating(true);
-    // API call to backend will be implemented here
+    setSettings(prev => ({ ...prev, rounds: 4 })); // Force 4 rounds for this format
+    
+    try {
+      let currentDebate: Array<{ speaker: string; text: string }> = [];
+      
+      for (let round = 1; round <= 4; round++) {
+        setCurrentRound(round);
+        
+        // Generate first speaker's argument with round-specific prompt
+        const firstSpeakerArg = await generateArgument(
+          settings.topic,
+          settings.model1.stance,
+          settings.model1.rhetoricStyle,
+          generateSystemPromptForRound(round, settings.model1.stance, settings.model1.systemPrompt),
+          currentDebate
+        );
+        
+        currentDebate = [
+          ...currentDebate,
+          { speaker: "First Speaker", text: firstSpeakerArg }
+        ];
+        setDebate(currentDebate);
+        
+        await new Promise(resolve => setTimeout(resolve, 1000));
+        
+        // Generate second speaker's argument with round-specific prompt
+        const secondSpeakerArg = await generateArgument(
+          settings.topic,
+          settings.model2.stance,
+          settings.model2.rhetoricStyle,
+          generateSystemPromptForRound(round, settings.model2.stance, settings.model2.systemPrompt),
+          currentDebate
+        );
+        
+        currentDebate = [
+          ...currentDebate,
+          { speaker: "Second Speaker", text: secondSpeakerArg }
+        ];
+        setDebate(currentDebate);
+
+        if (round < 4) {
+          await new Promise(resolve => setTimeout(resolve, 1000));
+        }
+      }
+    } catch (error) {
+      console.error('Error during debate:', error);
+      alert('An error occurred during the debate. Please try again.');
+    } finally {
+      setIsDebating(false);
+    }
   };
 
   const getModelSettings = (modelNum: number) => {
@@ -612,23 +716,87 @@ const DebateEngine: React.FC = () => {
             disabled={isDebating || !settings.topic}
             className="bg-blue-600 hover:bg-blue-700 disabled:bg-gray-600 px-8 py-3 rounded-lg font-semibold transition-colors text-white"
           >
-            {isDebating ? 'Debate in Progress...' : 'Start Debate'}
+            {isDebating ? `Round ${currentRound} of ${settings.rounds} in Progress...` : 'Start Debate'}
           </button>
         </div>
 
         {debate.length > 0 && (
-          <div className="space-y-4">
-            {debate.map((entry, index) => (
-              <div
-                key={index}
-                className={`p-4 rounded-lg ${
-                  entry.speaker === 'AI 1' ? 'bg-blue-900' : 'bg-purple-900'
-                }`}
-              >
-                <div className="font-semibold mb-2 text-white">{entry.speaker}</div>
-                <div className="text-gray-200">{entry.text}</div>
-              </div>
-            ))}
+          <div className="mt-8 space-y-6">
+            <h2 className="text-2xl text-center mb-12 font-light tracking-wide bg-gradient-to-r from-gray-400 via-gray-300 to-gray-400 bg-clip-text text-transparent">
+              {settings.topic}
+            </h2>
+            
+            {Array.from({ length: Math.ceil(debate.length / 2) }, (_, roundIndex) => {
+              const roundNumber = roundIndex + 1;
+              const firstSpeakerIndex = roundIndex * 2;
+              const secondSpeakerIndex = firstSpeakerIndex + 1;
+              const roundInfo = getRoundTitle(roundNumber);
+              
+              return (
+                <div key={roundNumber} className="space-y-4">
+                  <div className="mb-6">
+                    <h3 className="text-xl font-semibold text-gray-300 mb-2 border-b border-gray-700/50 pb-2">
+                      {roundInfo.title}
+                    </h3>
+                    <p className="text-sm text-gray-400 italic">
+                      {roundInfo.description}
+                    </p>
+                  </div>
+                  
+                  {debate[firstSpeakerIndex] && (
+                    <motion.div
+                      initial={{ opacity: 0, x: -20 }}
+                      animate={{ opacity: 1, x: 0 }}
+                      transition={{ duration: 0.5 }}
+                      className="flex justify-start"
+                    >
+                      <div 
+                        className="w-3/4 p-6 rounded-lg shadow-xl backdrop-blur-sm"
+                        style={{ 
+                          background: `linear-gradient(135deg, ${getStanceBackgroundColor(settings.model1.stance).replace('0.1', '0.2')}, ${getStanceBackgroundColor(settings.model1.stance).replace('0.1', '0.1')})`,
+                          border: `1px solid ${getStanceBackgroundColor(settings.model1.stance).replace('0.1', '0.3')}`,
+                        }}
+                      >
+                        <div className="flex items-center gap-3 mb-3">
+                          <div className="text-lg font-semibold" style={{ color: getStanceColor(settings.model1.stance) }}>
+                            First Speaker
+                          </div>
+                        </div>
+                        <div className="text-gray-200 leading-relaxed whitespace-pre-wrap">
+                          {debate[firstSpeakerIndex].text}
+                        </div>
+                      </div>
+                    </motion.div>
+                  )}
+                  
+                  {debate[secondSpeakerIndex] && (
+                    <motion.div
+                      initial={{ opacity: 0, x: 20 }}
+                      animate={{ opacity: 1, x: 0 }}
+                      transition={{ duration: 0.5 }}
+                      className="flex justify-end"
+                    >
+                      <div 
+                        className="w-3/4 p-6 rounded-lg shadow-xl backdrop-blur-sm"
+                        style={{ 
+                          background: `linear-gradient(135deg, ${getStanceBackgroundColor(settings.model2.stance).replace('0.1', '0.2')}, ${getStanceBackgroundColor(settings.model2.stance).replace('0.1', '0.1')})`,
+                          border: `1px solid ${getStanceBackgroundColor(settings.model2.stance).replace('0.1', '0.3')}`,
+                        }}
+                      >
+                        <div className="flex items-center gap-3 mb-3 justify-end">
+                          <div className="text-lg font-semibold" style={{ color: getStanceColor(settings.model2.stance) }}>
+                            Second Speaker
+                          </div>
+                        </div>
+                        <div className="text-gray-200 leading-relaxed whitespace-pre-wrap">
+                          {debate[secondSpeakerIndex].text}
+                        </div>
+                      </div>
+                    </motion.div>
+                  )}
+                </div>
+              );
+            })}
           </div>
         )}
       </div>
