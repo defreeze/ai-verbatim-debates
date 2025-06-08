@@ -69,38 +69,36 @@ const DebateEngine: React.FC = () => {
   };
 
   return (
-    <div className="flex flex-col items-center justify-center min-h-screen bg-gray-100">
-      <div className="p-8 bg-white rounded-lg shadow-md w-full max-w-4xl">
-        <h1 className="text-3xl font-bold text-center mb-8">AI Verbatim</h1>
-        <h2 className="text-2xl text-center mb-12 text-gray-400">
-          The Frontier Destination for AI Debates
-        </h2>
+    <div className="container mx-auto px-4 py-8">
+      <div className="max-w-6xl mx-auto">
+        <h1 className="text-3xl font-bold text-white mb-4 text-center">AI Verbatim</h1>
+        <p className="text-xl text-gray-400 mb-8 text-center">The Frontier Destination for AI Debates</p>
 
-        <div className="bg-gray-800 rounded-lg p-6 shadow-xl">
+        <div className="bg-gray-800 rounded-lg p-6 shadow-xl mb-8">
           <div className="mb-8">
-            <label className="block text-lg mb-2">Debate Topic</label>
+            <label className="block text-lg mb-2 text-white">Debate Topic</label>
             <input
               type="text"
               value={settings.topic}
               onChange={handleTopicChange}
-              className="w-full bg-gray-700 rounded px-4 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500"
+              className="w-full bg-gray-700 rounded px-4 py-2 text-white focus:outline-none focus:ring-2 focus:ring-blue-500"
               placeholder="Enter a topic for debate..."
             />
           </div>
 
-          <div className="grid md:grid-cols-2 gap-8 mb-8">
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
             {[1, 2].map((modelNum) => {
               const model = getModelSettings(modelNum);
               return (
                 <div key={modelNum} className="bg-gray-700 rounded-lg p-4">
-                  <h3 className="text-xl mb-4">AI Model {modelNum}</h3>
+                  <h3 className="text-xl mb-4 text-white">AI Model {modelNum}</h3>
                   <div className="space-y-4">
                     <div>
-                      <label className="block mb-1">Model</label>
+                      <label className="block mb-1 text-gray-300">Model</label>
                       <select
                         value={model.name}
                         onChange={(e) => handleModelSettingChange(modelNum as 1 | 2, 'name', e.target.value)}
-                        className="w-full bg-gray-600 rounded px-3 py-2"
+                        className="w-full bg-gray-600 rounded px-3 py-2 text-white"
                       >
                         <option value="gpt-4">GPT-4</option>
                         <option value="gpt-3.5-turbo">GPT-3.5 Turbo</option>
@@ -108,7 +106,7 @@ const DebateEngine: React.FC = () => {
                     </div>
                     
                     <div>
-                      <label className="block mb-1">Temperature</label>
+                      <label className="block mb-1 text-gray-300">Temperature</label>
                       <input
                         type="range"
                         min="0"
@@ -124,11 +122,11 @@ const DebateEngine: React.FC = () => {
                     </div>
 
                     <div>
-                      <label className="block mb-1">System Prompt</label>
+                      <label className="block mb-1 text-gray-300">System Prompt</label>
                       <textarea
                         value={model.systemPrompt}
                         onChange={(e) => handleModelSettingChange(modelNum as 1 | 2, 'systemPrompt', e.target.value)}
-                        className="w-full bg-gray-600 rounded px-3 py-2 h-24"
+                        className="w-full bg-gray-600 rounded px-3 py-2 h-24 text-white"
                       />
                     </div>
                   </div>
@@ -137,32 +135,32 @@ const DebateEngine: React.FC = () => {
             })}
           </div>
 
-          <div className="text-center">
+          <div className="text-center mt-8">
             <button
               onClick={startDebate}
               disabled={isDebating || !settings.topic}
-              className="bg-blue-600 hover:bg-blue-700 disabled:bg-gray-600 px-8 py-3 rounded-lg font-semibold transition-colors"
+              className="bg-blue-600 hover:bg-blue-700 disabled:bg-gray-600 px-8 py-3 rounded-lg font-semibold transition-colors text-white"
             >
               {isDebating ? 'Debate in Progress...' : 'Start Debate'}
             </button>
           </div>
-
-          {debate.length > 0 && (
-            <div className="mt-8 space-y-4">
-              {debate.map((entry, index) => (
-                <div
-                  key={index}
-                  className={`p-4 rounded-lg ${
-                    entry.speaker === 'AI 1' ? 'bg-blue-900' : 'bg-purple-900'
-                  }`}
-                >
-                  <div className="font-semibold mb-2">{entry.speaker}</div>
-                  <div>{entry.text}</div>
-                </div>
-              ))}
-            </div>
-          )}
         </div>
+
+        {debate.length > 0 && (
+          <div className="space-y-4">
+            {debate.map((entry, index) => (
+              <div
+                key={index}
+                className={`p-4 rounded-lg ${
+                  entry.speaker === 'AI 1' ? 'bg-blue-900' : 'bg-purple-900'
+                }`}
+              >
+                <div className="font-semibold mb-2 text-white">{entry.speaker}</div>
+                <div className="text-gray-200">{entry.text}</div>
+              </div>
+            ))}
+          </div>
+        )}
       </div>
     </div>
   );
