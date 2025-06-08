@@ -29,27 +29,17 @@ const Navigation: React.FC = () => {
                     : 'border-transparent text-gray-300 hover:border-gray-300 hover:text-white'
                 } inline-flex items-center px-1 pt-1 border-b-2 text-sm font-medium`}
               >
-                Home
-              </Link>
-              <Link
-                to="/engine"
-                className={`${
-                  isActive('/engine')
-                    ? 'border-blue-500 text-white'
-                    : 'border-transparent text-gray-300 hover:border-gray-300 hover:text-white'
-                } inline-flex items-center px-1 pt-1 border-b-2 text-sm font-medium`}
-              >
                 Debate Engine
               </Link>
               <Link
-                to="/history"
+                to="/about"
                 className={`${
-                  isActive('/history')
+                  isActive('/about')
                     ? 'border-blue-500 text-white'
                     : 'border-transparent text-gray-300 hover:border-gray-300 hover:text-white'
                 } inline-flex items-center px-1 pt-1 border-b-2 text-sm font-medium`}
               >
-                History
+                About
               </Link>
             </div>
           </div>
