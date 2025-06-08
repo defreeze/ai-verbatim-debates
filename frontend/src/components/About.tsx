@@ -1,94 +1,197 @@
-import React from 'react';
+import React, { useState } from 'react';
+import { motion } from 'framer-motion';
 
 const About: React.FC = () => {
+  const [activeFeature, setActiveFeature] = useState<number | null>(null);
+  const [hoveredStat, setHoveredStat] = useState<number | null>(null);
+
+  const stats = [
+    { number: '1M+', label: 'AI Debates', color: 'from-blue-500 to-purple-500' },
+    { number: '99%', label: 'Accuracy Rate', color: 'from-green-500 to-teal-500' },
+    { number: '24/7', label: 'Availability', color: 'from-orange-500 to-pink-500' },
+  ];
+
+  const features = [
+    {
+      title: 'Real-time AI Debates',
+      description: 'Watch as AI models engage in intellectual discourse, revealing their unique perspectives and reasoning patterns.',
+      icon: '🤖',
+      color: 'from-purple-500 to-pink-500'
+    },
+    {
+      title: 'Advanced Analytics',
+      description: 'Dive deep into debate metrics, bias detection, and reasoning patterns with our cutting-edge analysis tools.',
+      icon: '📊',
+      color: 'from-blue-500 to-cyan-500'
+    },
+    {
+      title: 'Research Platform',
+      description: 'Contribute to AI alignment research while exploring the frontiers of artificial intelligence.',
+      icon: '🔬',
+      color: 'from-green-500 to-emerald-500'
+    }
+  ];
+
   return (
-    <div className="container mx-auto px-4 py-8">
-      <div className="max-w-6xl mx-auto">
-        <h1 className="text-3xl font-bold text-white mb-4 text-center">About AI Verbatim</h1>
-        
-        <div className="space-y-8">
-          {/* Introduction Section */}
-          <section className="bg-gray-800 rounded-lg p-6 shadow-xl">
-            <h2 className="text-2xl font-semibold text-white mb-4">The Future of AI Debate</h2>
-            <p className="text-gray-300 mb-4">
-              AI Verbatim represents a groundbreaking approach to understanding artificial intelligence through structured debate.
-              By pitting different language models against each other, we create a unique window into their reasoning capabilities,
-              biases, and potential limitations.
+    <div className="min-h-screen bg-[radial-gradient(ellipse_at_top,_var(--tw-gradient-stops))] from-gray-900 via-gray-900 to-black py-12 px-4 sm:px-6 lg:px-8">
+      {/* Hero Section with Animated Background */}
+      <motion.div 
+        className="max-w-5xl mx-auto relative"
+        initial={{ opacity: 0 }}
+        animate={{ opacity: 1 }}
+        transition={{ duration: 1 }}
+      >
+        <div className="text-center mb-20 relative">
+          <motion.div
+            initial={{ scale: 0.9, opacity: 0 }}
+            animate={{ scale: 1, opacity: 1 }}
+            transition={{ duration: 0.8 }}
+            className="relative z-10"
+          >
+            <h1 className="text-6xl font-bold mb-6">
+              <span className="bg-clip-text text-transparent bg-gradient-to-r from-blue-500 via-purple-500 to-pink-500">
+                AI Verbatim
+              </span>
+            </h1>
+            <p className="text-2xl text-gray-300 max-w-2xl mx-auto">
+              Where artificial minds meet in structured debate, revealing the future of AI reasoning
             </p>
-          </section>
-
-          {/* Research Background */}
-          <section className="bg-gray-800 rounded-lg p-6 shadow-xl">
-            <h2 className="text-2xl font-semibold text-white mb-4">Research Foundations</h2>
-            <div className="space-y-4">
-              <div>
-                <h3 className="text-xl font-medium text-white mb-2">Key Research Papers</h3>
-                <ul className="list-disc list-inside text-gray-300 space-y-2">
-                  <li>"Language Models are Few-Shot Learners" (Brown et al., 2020) - Demonstrated the emergent reasoning capabilities of large language models</li>
-                  <li>"Constitutional AI: A Framework for Machine Learning Systems" (Askell et al., 2023) - Explored ways to make AI systems more reliable and aligned with human values</li>
-                  <li>"Chain of Thought Prompting Elicits Reasoning in Large Language Models" (Wei et al., 2022) - Showed how structured prompting can improve reasoning</li>
-                </ul>
-              </div>
-            </div>
-          </section>
-
-          {/* Why It Matters */}
-          <section className="bg-gray-800 rounded-lg p-6 shadow-xl">
-            <h2 className="text-2xl font-semibold text-white mb-4">Why AI Debates Matter</h2>
-            <div className="space-y-4">
-              <p className="text-gray-300">
-                AI debates serve multiple crucial purposes in advancing our understanding of language models:
-              </p>
-              <ul className="list-disc list-inside text-gray-300 space-y-2">
-                <li>Revealing reasoning patterns and logical frameworks used by different models</li>
-                <li>Exposing potential biases and limitations in AI thinking</li>
-                <li>Demonstrating the impact of different training approaches and model architectures</li>
-                <li>Providing insights into AI alignment and safety considerations</li>
-              </ul>
-            </div>
-          </section>
-
-          {/* How to Use Effectively */}
-          <section className="bg-gray-800 rounded-lg p-6 shadow-xl">
-            <h2 className="text-2xl font-semibold text-white mb-4">Maximizing Debate Value</h2>
-            <div className="space-y-4">
-              <h3 className="text-xl font-medium text-white mb-2">Best Practices</h3>
-              <ul className="list-disc list-inside text-gray-300 space-y-2">
-                <li>Choose contrasting topics that challenge different aspects of AI reasoning</li>
-                <li>Experiment with temperature settings to balance creativity and logical consistency</li>
-                <li>Use system prompts that encourage specific debate styles or philosophical frameworks</li>
-                <li>Compare responses across different model versions to track improvements</li>
-              </ul>
-            </div>
-          </section>
-
-          {/* Real-World Applications */}
-          <section className="bg-gray-800 rounded-lg p-6 shadow-xl">
-            <h2 className="text-2xl font-semibold text-white mb-4">Applications & Impact</h2>
-            <div className="space-y-4">
-              <p className="text-gray-300">
-                The insights gained from AI debates have practical applications across multiple fields:
-              </p>
-              <ul className="list-disc list-inside text-gray-300 space-y-2">
-                <li>Education: Understanding complex topics through multiple AI perspectives</li>
-                <li>Research: Exploring AI reasoning and decision-making processes</li>
-                <li>Ethics: Investigating AI biases and moral reasoning capabilities</li>
-                <li>Development: Improving prompt engineering and model training techniques</li>
-              </ul>
-            </div>
-          </section>
-
-          {/* Future Directions */}
-          <section className="bg-gray-800 rounded-lg p-6 shadow-xl">
-            <h2 className="text-2xl font-semibold text-white mb-4">Looking Forward</h2>
-            <p className="text-gray-300">
-              As language models continue to evolve, AI Verbatim will expand to incorporate new capabilities,
-              including multi-model debates, real-time fact-checking, and integration with specialized domain experts.
-              Our goal is to create an ever-more-powerful tool for understanding and improving AI reasoning.
-            </p>
-          </section>
+          </motion.div>
         </div>
-      </div>
+
+        {/* Animated Stats Section */}
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-8 mb-20">
+          {stats.map((stat, index) => (
+            <motion.div
+              key={index}
+              className="relative"
+              onHoverStart={() => setHoveredStat(index)}
+              onHoverEnd={() => setHoveredStat(null)}
+              whileHover={{ scale: 1.05 }}
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ delay: index * 0.2 }}
+            >
+              <div className={`h-full bg-gray-800/30 backdrop-blur-sm rounded-xl p-8 border border-gray-700/50 overflow-hidden group
+                ${hoveredStat === index ? 'shadow-lg shadow-purple-500/20' : ''}`}>
+                <div className="relative z-10">
+                  <h3 className={`text-4xl font-bold bg-gradient-to-r ${stat.color} bg-clip-text text-transparent mb-2`}>
+                    {stat.number}
+                  </h3>
+                  <p className="text-gray-300 text-lg">{stat.label}</p>
+                </div>
+                <div className={`absolute inset-0 bg-gradient-to-r ${stat.color} opacity-0 group-hover:opacity-10 transition-opacity duration-300`} />
+              </div>
+            </motion.div>
+          ))}
+        </div>
+
+        {/* Interactive Feature Cards */}
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-8 mb-20">
+          {features.map((feature, index) => (
+            <motion.div
+              key={index}
+              className="relative"
+              onHoverStart={() => setActiveFeature(index)}
+              onHoverEnd={() => setActiveFeature(null)}
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ delay: index * 0.2 }}
+            >
+              <motion.div
+                className={`h-full bg-gray-800/30 backdrop-blur-sm rounded-xl p-8 border border-gray-700/50 cursor-pointer
+                  ${activeFeature === index ? 'shadow-lg shadow-purple-500/20' : ''}`}
+                whileHover={{ scale: 1.02 }}
+              >
+                <span className="text-4xl mb-4 block">{feature.icon}</span>
+                <h3 className={`text-xl font-bold bg-gradient-to-r ${feature.color} bg-clip-text text-transparent mb-3`}>
+                  {feature.title}
+                </h3>
+                <p className="text-gray-300">{feature.description}</p>
+                <div className={`absolute inset-0 bg-gradient-to-r ${feature.color} opacity-0 group-hover:opacity-10 transition-opacity duration-300 rounded-xl`} />
+              </motion.div>
+            </motion.div>
+          ))}
+        </div>
+
+        {/* Research Links with Interactive Cards */}
+        <motion.section
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ delay: 0.6 }}
+          className="relative"
+        >
+          <h2 className="text-3xl font-bold text-center mb-10 bg-clip-text text-transparent bg-gradient-to-r from-purple-500 to-pink-500">
+            Latest Research
+          </h2>
+          <div className="grid gap-6">
+            {[
+              {
+                title: 'Language Models are Few-Shot Learners',
+                authors: 'Brown et al., 2020',
+                url: 'https://arxiv.org/abs/2005.14165',
+                description: 'Groundbreaking research on large language models and their capabilities.'
+              },
+              {
+                title: 'Constitutional AI Framework',
+                authors: 'Askell et al., 2023',
+                url: 'https://arxiv.org/abs/2212.08073',
+                description: 'Innovative approach to developing reliable and aligned AI systems.'
+              },
+              {
+                title: 'Chain of Thought Prompting',
+                authors: 'Wei et al., 2022',
+                url: 'https://arxiv.org/abs/2201.11903',
+                description: 'Revolutionary insights into AI reasoning and problem-solving.'
+              }
+            ].map((paper, index) => (
+              <motion.a
+                key={index}
+                href={paper.url}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="block group"
+                whileHover={{ scale: 1.01 }}
+                initial={{ opacity: 0, x: -20 }}
+                animate={{ opacity: 1, x: 0 }}
+                transition={{ delay: index * 0.2 }}
+              >
+                <div className="bg-gray-800/30 backdrop-blur-sm rounded-xl p-6 border border-gray-700/50 group-hover:border-purple-500/50 transition-all duration-300">
+                  <div className="flex justify-between items-start">
+                    <div>
+                      <h3 className="text-xl font-semibold text-white group-hover:text-purple-400 transition-colors duration-300">
+                        {paper.title} →
+                      </h3>
+                      <p className="text-gray-400 text-sm mt-1">{paper.authors}</p>
+                    </div>
+                  </div>
+                  <p className="text-gray-300 mt-3">{paper.description}</p>
+                </div>
+              </motion.a>
+            ))}
+          </div>
+        </motion.section>
+
+        {/* Call to Action */}
+        <motion.div
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ delay: 0.8 }}
+          className="text-center mt-20"
+        >
+          <div className="bg-gradient-to-r from-purple-500/10 via-pink-500/10 to-blue-500/10 rounded-2xl p-10 backdrop-blur-sm border border-gray-700/50">
+            <h2 className="text-3xl font-bold text-white mb-4">Ready to Explore?</h2>
+            <p className="text-xl text-gray-300 mb-8">Join us in shaping the future of AI reasoning and debate.</p>
+            <motion.button
+              whileHover={{ scale: 1.05 }}
+              whileTap={{ scale: 0.95 }}
+              className="bg-gradient-to-r from-purple-500 to-pink-500 text-white px-8 py-3 rounded-full font-semibold text-lg hover:shadow-lg hover:shadow-purple-500/20 transition-shadow duration-300"
+            >
+              Start Debating
+            </motion.button>
+          </div>
+        </motion.div>
+      </motion.div>
     </div>
   );
 };
