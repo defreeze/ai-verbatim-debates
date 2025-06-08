@@ -46,11 +46,12 @@ const DebateEngine: React.FC = () => {
     setting: keyof AIModel,
     value: string | number
   ) => {
-    const modelKey = `model${modelNum}` as keyof DebateSettings;
+    const modelKey = `model${modelNum}` as const;
+    const model = settings[modelKey as keyof DebateSettings] as AIModel;
     setSettings({
       ...settings,
       [modelKey]: {
-        ...settings[modelKey],
+        ...model,
         [setting]: value
       }
     });
@@ -60,6 +61,11 @@ const DebateEngine: React.FC = () => {
     if (!settings.topic) return;
     setIsDebating(true);
     // API call to backend will be implemented here
+  };
+
+  const getModelSettings = (modelNum: number) => {
+    const key = `model${modelNum}` as keyof DebateSettings;
+    return settings[key] as AIModel;
   };
 
   return (
@@ -85,49 +91,52 @@ const DebateEngine: React.FC = () => {
           </div>
 
           <div className="grid md:grid-cols-2 gap-8 mb-8">
-            {[1, 2].map((modelNum) => (
-              <div key={modelNum} className="bg-gray-700 rounded-lg p-4">
-                <h3 className="text-xl mb-4">AI Model {modelNum}</h3>
-                <div className="space-y-4">
-                  <div>
-                    <label className="block mb-1">Model</label>
-                    <select
-                      value={settings[`model${modelNum}` as keyof DebateSettings].name}
-                      onChange={(e) => handleModelSettingChange(modelNum as 1 | 2, 'name', e.target.value)}
-                      className="w-full bg-gray-600 rounded px-3 py-2"
-                    >
-                      <option value="gpt-4">GPT-4</option>
-                      <option value="gpt-3.5-turbo">GPT-3.5 Turbo</option>
-                    </select>
-                  </div>
-                  
-                  <div>
-                    <label className="block mb-1">Temperature</label>
-                    <input
-                      type="range"
-                      min="0"
-                      max="1"
-                      step="0.1"
-                      value={settings[`model${modelNum}` as keyof DebateSettings].temperature}
-                      onChange={(e) => handleModelSettingChange(modelNum as 1 | 2, 'temperature', parseFloat(e.target.value))}
-                      className="w-full"
-                    />
-                    <div className="text-sm text-gray-400">
-                      {settings[`model${modelNum}` as keyof DebateSettings].temperature}
+            {[1, 2].map((modelNum) => {
+              const model = getModelSettings(modelNum);
+              return (
+                <div key={modelNum} className="bg-gray-700 rounded-lg p-4">
+                  <h3 className="text-xl mb-4">AI Model {modelNum}</h3>
+                  <div className="space-y-4">
+                    <div>
+                      <label className="block mb-1">Model</label>
+                      <select
+                        value={model.name}
+                        onChange={(e) => handleModelSettingChange(modelNum as 1 | 2, 'name', e.target.value)}
+                        className="w-full bg-gray-600 rounded px-3 py-2"
+                      >
+                        <option value="gpt-4">GPT-4</option>
+                        <option value="gpt-3.5-turbo">GPT-3.5 Turbo</option>
+                      </select>
+                    </div>
+                    
+                    <div>
+                      <label className="block mb-1">Temperature</label>
+                      <input
+                        type="range"
+                        min="0"
+                        max="1"
+                        step="0.1"
+                        value={model.temperature}
+                        onChange={(e) => handleModelSettingChange(modelNum as 1 | 2, 'temperature', parseFloat(e.target.value))}
+                        className="w-full"
+                      />
+                      <div className="text-sm text-gray-400">
+                        {model.temperature}
+                      </div>
+                    </div>
+
+                    <div>
+                      <label className="block mb-1">System Prompt</label>
+                      <textarea
+                        value={model.systemPrompt}
+                        onChange={(e) => handleModelSettingChange(modelNum as 1 | 2, 'systemPrompt', e.target.value)}
+                        className="w-full bg-gray-600 rounded px-3 py-2 h-24"
+                      />
                     </div>
                   </div>
-
-                  <div>
-                    <label className="block mb-1">System Prompt</label>
-                    <textarea
-                      value={settings[`model${modelNum}` as keyof DebateSettings].systemPrompt}
-                      onChange={(e) => handleModelSettingChange(modelNum as 1 | 2, 'systemPrompt', e.target.value)}
-                      className="w-full bg-gray-600 rounded px-3 py-2 h-24"
-                    />
-                  </div>
                 </div>
-              </div>
-            ))}
+              );
+            })}
           </div>
 
           <div className="text-center">

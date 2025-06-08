@@ -1,149 +1,163 @@
-from rest_framework import viewsets, status
-from rest_framework.decorators import action
+from rest_framework import views, status
 from rest_framework.response import Response
-from rest_framework.permissions import IsAuthenticated
-from .models import Debate, AIParticipant, DebateRound
-from .serializers import DebateSerializer, AIParticipantSerializer, DebateRoundSerializer
-
-from langchain_openai import ChatOpenAI
-from langgraph.graph import StateGraph, END
-from typing import Dict, TypedDict, Annotated
+from .firebase_service import FirebaseService
+from .models import Debate, DebateRound
 import os
+from openai import OpenAI
+from typing import Dict, Any
 
-class DebateState(TypedDict):
-    topic: str
-    current_round: int
-    total_rounds: int
-    history: list[dict]
-    current_speaker: int
+client = OpenAI(api_key=os.getenv('OPENAI_API_KEY'))
 
-class DebateViewSet(viewsets.ModelViewSet):
-    queryset = Debate.objects.all()
-    serializer_class = DebateSerializer
-    permission_classes = [IsAuthenticated]
-
-    def perform_create(self, serializer):
-        debate = serializer.save(created_by=self.request.user)
-        self._setup_debate_participants(debate)
-
-    def _setup_debate_participants(self, debate):
-        participant_data = self.request.data.get('participants', [])
-        for i, data in enumerate(participant_data, 1):
-            AIParticipant.objects.create(
-                debate=debate,
-                position=i,
-                **data
-            )
-
-    @action(detail=True, methods=['post'])
-    def start_debate(self, request, pk=None):
-        debate = self.get_object()
-        if debate.status != 'pending':
-            return Response(
-                {'error': 'Debate has already started'},
-                status=status.HTTP_400_BAD_REQUEST
-            )
-
+class DebateView(views.APIView):
+    def post(self, request):
         try:
-            debate_chain = self._create_debate_chain(debate)
-            initial_state = self._create_initial_state(debate)
+            topic = request.data.get('topic')
+            description = request.data.get('description')
+            participant_1 = request.data.get('participant_1')
+            participant_2 = request.data.get('participant_2')
             
-            # Start the debate process
-            debate.status = 'in_progress'
-            debate.save()
+            if not all([topic, description, participant_1, participant_2]):
+                return Response(
+                    {'error': 'Missing required fields'},
+                    status=status.HTTP_400_BAD_REQUEST
+                )
             
-            # Run the debate chain
-            final_state = debate_chain.invoke(initial_state)
+            debate = FirebaseService.create_debate(
+                topic=topic,
+                description=description,
+                participant_1=participant_1,
+                participant_2=participant_2
+            )
             
-            # Update debate status
-            debate.status = 'completed'
-            debate.save()
-            
-            return Response(self.get_serializer(debate).data)
+            return Response(self._serialize_debate(debate), status=status.HTTP_201_CREATED)
         except Exception as e:
-            debate.status = 'failed'
-            debate.save()
             return Response(
                 {'error': str(e)},
                 status=status.HTTP_500_INTERNAL_SERVER_ERROR
             )
-
-    def _create_debate_chain(self, debate):
-        # Create LangGraph chain for debate
-        workflow = StateGraph(DebateState)
-
-        def should_continue(state: DebateState) -> bool:
-            return state['current_round'] < state['total_rounds']
-
-        def generate_response(state: DebateState) -> DebateState:
-            current_speaker = state['current_speaker']
-            participant = debate.participants.get(position=current_speaker)
+    
+    def get(self, request, debate_id=None):
+        try:
+            if debate_id:
+                debate = FirebaseService.get_debate(debate_id)
+                if not debate:
+                    return Response(
+                        {'error': 'Debate not found'},
+                        status=status.HTTP_404_NOT_FOUND
+                    )
+                return Response(self._serialize_debate(debate))
             
-            llm = ChatOpenAI(
-                model_name=participant.model_name,
-                temperature=participant.temperature
+            # TODO: Implement listing all debates
+            return Response({'error': 'List all debates not implemented'}, status=status.HTTP_501_NOT_IMPLEMENTED)
+        except Exception as e:
+            return Response(
+                {'error': str(e)},
+                status=status.HTTP_500_INTERNAL_SERVER_ERROR
+            )
+    
+    def _serialize_debate(self, debate: Debate) -> Dict[str, Any]:
+        return {
+            'id': debate.id,
+            'topic': debate.topic,
+            'description': debate.description,
+            'participant_1': debate.participant_1,
+            'participant_2': debate.participant_2,
+            'status': debate.status,
+            'created_at': debate.created_at,
+            'updated_at': debate.updated_at,
+            'winner': debate.winner,
+            'rounds': [self._serialize_round(r) for r in debate.rounds]
+        }
+    
+    def _serialize_round(self, round: DebateRound) -> Dict[str, Any]:
+        return {
+            'id': round.id,
+            'debate_id': round.debate_id,
+            'round_number': round.round_number,
+            'participant_1_argument': round.participant_1_argument,
+            'participant_2_argument': round.participant_2_argument,
+            'created_at': round.created_at
+        }
+
+class DebateRoundView(views.APIView):
+    def post(self, request, debate_id):
+        try:
+            debate = FirebaseService.get_debate(debate_id)
+            if not debate:
+                return Response(
+                    {'error': 'Debate not found'},
+                    status=status.HTTP_404_NOT_FOUND
+                )
+            
+            # Get the next round number
+            next_round = len(debate.rounds) + 1
+            
+            # Generate arguments using OpenAI
+            participant_1_argument = self._generate_argument(
+                debate.topic,
+                debate.participant_1,
+                debate.rounds,
+                is_first_participant=True
             )
             
-            # Prepare context from debate history
-            context = "\n".join([
-                f"Speaker {entry['speaker']}: {entry['content']}"
-                for entry in state['history']
-            ])
-            
-            # Generate response
-            response = llm.invoke(
-                f"""Topic: {state['topic']}
-                Previous arguments:
-                {context}
-                
-                You are Speaker {current_speaker}. {participant.system_prompt}
-                Provide your argument for this debate round."""
+            participant_2_argument = self._generate_argument(
+                debate.topic,
+                debate.participant_2,
+                debate.rounds,
+                is_first_participant=False
             )
             
-            # Save to database
-            DebateRound.objects.create(
-                debate=debate,
-                round_number=state['current_round'],
-                participant=participant,
-                content=response.content
+            # Create the new round
+            new_round = FirebaseService.add_debate_round(
+                debate_id=debate_id,
+                round_number=next_round,
+                participant_1_argument=participant_1_argument,
+                participant_2_argument=participant_2_argument
             )
             
-            # Update state
-            state['history'].append({
-                'speaker': current_speaker,
-                'content': response.content
-            })
-            
-            # Switch speakers and increment round if needed
-            state['current_speaker'] = 2 if current_speaker == 1 else 1
-            if state['current_speaker'] == 1:
-                state['current_round'] += 1
-            
-            return state
-
-        # Add nodes to the graph
-        workflow.add_node("generate_response", generate_response)
+            return Response(
+                self._serialize_round(new_round),
+                status=status.HTTP_201_CREATED
+            )
+        except Exception as e:
+            return Response(
+                {'error': str(e)},
+                status=status.HTTP_500_INTERNAL_SERVER_ERROR
+            )
+    
+    def _generate_argument(self, topic: str, participant: str, rounds: List[DebateRound], is_first_participant: bool) -> str:
+        # Construct the conversation history
+        messages = [
+            {"role": "system", "content": f"You are {participant} participating in a debate about: {topic}"}
+        ]
         
-        # Add conditional edges
-        workflow.add_conditional_edges(
-            "generate_response",
-            should_continue,
-            {
-                True: "generate_response",
-                False: END
-            }
+        # Add previous rounds to the context
+        for round in rounds:
+            if is_first_participant:
+                messages.append({"role": "assistant", "content": round.participant_1_argument})
+                if round.participant_2_argument:
+                    messages.append({"role": "user", "content": round.participant_2_argument})
+            else:
+                messages.append({"role": "user", "content": round.participant_1_argument})
+                if round.participant_2_argument:
+                    messages.append({"role": "assistant", "content": round.participant_2_argument})
+        
+        # Generate the response
+        response = client.chat.completions.create(
+            model="gpt-4-turbo-preview",
+            messages=messages,
+            temperature=0.7,
+            max_tokens=500
         )
         
-        # Set entry point
-        workflow.set_entry_point("generate_response")
-        
-        return workflow.compile()
-
-    def _create_initial_state(self, debate) -> DebateState:
+        return response.choices[0].message.content
+    
+    def _serialize_round(self, round: DebateRound) -> Dict[str, Any]:
         return {
-            'topic': debate.topic,
-            'current_round': 0,
-            'total_rounds': debate.rounds,
-            'history': [],
-            'current_speaker': 1
+            'id': round.id,
+            'debate_id': round.debate_id,
+            'round_number': round.round_number,
+            'participant_1_argument': round.participant_1_argument,
+            'participant_2_argument': round.participant_2_argument,
+            'created_at': round.created_at
         }
