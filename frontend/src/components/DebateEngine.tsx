@@ -502,8 +502,8 @@ const DebateEngine: React.FC = () => {
           transition={{ duration: 0.7, ease: "easeOut" }}
           className="text-center mb-12 relative overflow-hidden"
         >
-          {/* Background scrolling topics */}
-          <div className="absolute inset-0 opacity-[0.05] overflow-hidden pointer-events-none">
+                     {/* Background scrolling topics */}
+           <div className="absolute inset-0 opacity-[0.15] overflow-hidden pointer-events-none">
             <div className="grid grid-cols-3 gap-8 h-full">
               {/* Left column - slower */}
               <motion.div
@@ -576,7 +576,7 @@ const DebateEngine: React.FC = () => {
           </motion.p>
         </motion.div>
 
-        <div className="bg-gray-800 rounded-lg p-6 mb-6">
+        <div className="bg-blue-900/30 backdrop-blur-sm border border-blue-700/20 rounded-lg p-6 mb-6 shadow-xl">
           <div className="space-y-6">
             <div className="space-y-4">
               <div className="grid grid-cols-[1fr,auto] gap-4 py-4">
@@ -588,7 +588,7 @@ const DebateEngine: React.FC = () => {
               type="text"
               value={settings.topic}
               onChange={handleTopicChange}
-                    className="w-full bg-gray-900/50 rounded-lg px-6 py-4 text-lg text-white focus:outline-none focus:ring-2 focus:ring-blue-500/50 focus:bg-gray-900/70 transition-all duration-300 backdrop-blur-sm"
+                    className="w-full bg-gray-950/50 rounded-lg px-6 py-4 text-lg text-white focus:outline-none focus:ring-2 focus:ring-blue-500/50 focus:bg-gray-900/70 transition-all duration-300 backdrop-blur-sm"
                     placeholder="Enter a topic to debate..."
                     whileFocus={{ scale: 1.01 }}
                     transition={{ type: "spring", stiffness: 300, damping: 20 }}
