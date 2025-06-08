@@ -5,6 +5,7 @@ import Navigation from './components/Navigation';
 import DebateEngine from './components/DebateEngine';
 import Login from './components/Login';
 import About from './components/About';
+import History from './components/History';
 
 const App: React.FC = () => {
   return (
@@ -16,6 +17,7 @@ const App: React.FC = () => {
             <Route path="/" element={<DebateEngine />} />
             <Route path="/about" element={<About />} />
             <Route path="/login" element={<Login />} />
+            <Route path="/history" element={<History />} />
           </Routes>
         </div>
       </Router>
