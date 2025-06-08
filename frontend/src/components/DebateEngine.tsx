@@ -179,7 +179,35 @@ const DebateEngine: React.FC = () => {
   const { user } = useAuth();
   const [showAdvancedSettings, setShowAdvancedSettings] = useState(false);
   const [showGeneralSettings, setShowGeneralSettings] = useState(false);
+  const [showFloatingTopic, setShowFloatingTopic] = useState(false);
+  const [loadingState, setLoadingState] = useState<{
+    isLoading: boolean;
+    round: number;
+    speaker: 'First' | 'Second' | null;
+    type: string;
+  }>({
+    isLoading: false,
+    round: 0,
+    speaker: null,
+    type: ''
+  });
   
+  // Create a ref for the topic element
+  const topicRef = React.useRef<HTMLHeadingElement>(null);
+
+  // Add scroll event listener
+  React.useEffect(() => {
+    const handleScroll = () => {
+      if (topicRef.current) {
+        const rect = topicRef.current.getBoundingClientRect();
+        setShowFloatingTopic(rect.top < 0);
+      }
+    };
+
+    window.addEventListener('scroll', handleScroll);
+    return () => window.removeEventListener('scroll', handleScroll);
+  }, []);
+
   // Randomly determine initial stances
   const initialStances = useMemo(() => {
     return Math.random() < 0.5 ? { model1: -1, model2: 1 } : { model1: 1, model2: -1 };
@@ -208,10 +236,11 @@ const DebateEngine: React.FC = () => {
     }
   });
 
-  const [debate, setDebate] = useState<Array<{ speaker: string; text: string }>>([]);
+  const [debate, setDebate] = useState<Array<{ speaker: string; text: string; summary: string }>>([]);
   const [isDebating, setIsDebating] = useState(false);
   const [currentRound, setCurrentRound] = useState(1);
   const [debateId, setDebateId] = useState<string | null>(null);
+  const [expandedArguments, setExpandedArguments] = useState<Set<string>>(new Set());
 
   const handleTopicChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     setSettings({ ...settings, topic: e.target.value });
@@ -255,11 +284,6 @@ const DebateEngine: React.FC = () => {
           title: "Round 3: Summary",
           description: "Final statements incorporating and addressing previous points."
         };
-      case 4:
-        return {
-          title: "Round 4: Overview",
-          description: "Key points and conclusions from both perspectives."
-        };
       default:
         return {
           title: `Round ${roundNumber}`,
@@ -270,19 +294,22 @@ const DebateEngine: React.FC = () => {
 
   const generateSystemPromptForRound = (roundNumber: number, stance: number, basePrompt: string): string => {
     const stanceText = stance > 0 ? "supporting" : "opposing";
+    const stanceIntensity = Math.abs(stance) >= 0.8 ? "strongly" : Math.abs(stance) >= 0.3 ? "moderately" : "";
+    const stanceDescription = `${stanceIntensity} ${stanceText}`.trim();
     const baseSystemPrompt = basePrompt || "You are a skilled debater focusing on logical arguments and clear communication.";
+    
+    // Common stance reinforcement for all rounds
+    const stanceReinforcement = `Remember, you are ${stanceDescription} this position. Your conviction should be unwavering, and your arguments should consistently reflect your ${stanceDescription} stance. Do not moderate or soften your position.`;
     
     switch (roundNumber) {
       case 1:
-        return `${baseSystemPrompt} In this constructive round, present your strongest initial arguments ${stanceText} the topic. Focus on establishing your key points without directly addressing the opponent. Keep it clear and impactful.`;
+        return `${baseSystemPrompt} In this constructive round, you are tasked with presenting your strongest initial arguments while ${stanceDescription} the topic. Focus on establishing your key points without directly addressing the opponent. Your arguments should be clear, impactful, and reflect your strong conviction. ${stanceReinforcement} Build a foundation that clearly shows your ${stanceDescription} position.`;
       case 2:
-        return `${baseSystemPrompt} This is the rebuttal round. Address the opponent's previous arguments while strengthening your position. Point out flaws in their reasoning and defend your stance against their points.`;
+        return `${baseSystemPrompt} This is the rebuttal round. While ${stanceDescription} the topic, address the opponent's previous arguments and strengthen your position. Point out fundamental flaws in their reasoning and defend your stance vigorously. ${stanceReinforcement} Use this opportunity to not only counter their points but to reinforce why your position is superior.`;
       case 3:
-        return `${baseSystemPrompt} For this summary round, provide a comprehensive overview of your position, incorporating how you've addressed opposing arguments. Emphasize the strength of your stance after debate.`;
-      case 4:
-        return `${baseSystemPrompt} In this final overview, present a simplified version of your main arguments and responses. Focus on clarity and accessibility, making complex points easy to understand.`;
+        return `${baseSystemPrompt} For this final summary round, provide a powerful and comprehensive overview of your position. You are still ${stanceDescription} the topic - this is not the time to compromise. Show how you've effectively addressed opposing arguments while maintaining your strong stance. ${stanceReinforcement} End with conviction, leaving no doubt about your position and why it's correct.`;
       default:
-        return baseSystemPrompt;
+        return `${baseSystemPrompt} ${stanceReinforcement}`;
     }
   };
 
@@ -293,15 +320,22 @@ const DebateEngine: React.FC = () => {
     setDebate([]);
     setCurrentRound(0);
     setIsDebating(true);
-    setSettings(prev => ({ ...prev, rounds: 4 })); // Force 4 rounds for this format
+    setSettings(prev => ({ ...prev, rounds: 3 }));
     
     try {
-      let currentDebate: Array<{ speaker: string; text: string }> = [];
+      let currentDebate: Array<{ speaker: string; text: string; summary: string }> = [];
       
-      for (let round = 1; round <= 4; round++) {
+      for (let round = 1; round <= 3; round++) {
         setCurrentRound(round);
         
-        // Generate first speaker's argument with round-specific prompt
+        // First speaker's turn
+        setLoadingState({
+          isLoading: true,
+          round,
+          speaker: 'First',
+          type: getRoundTitle(round).title.split(':')[1].trim()
+        });
+        
         const firstSpeakerArg = await generateArgument(
           settings.topic,
           settings.model1.stance,
@@ -312,13 +346,20 @@ const DebateEngine: React.FC = () => {
         
         currentDebate = [
           ...currentDebate,
-          { speaker: "First Speaker", text: firstSpeakerArg }
+          { speaker: "First Speaker", text: firstSpeakerArg.text, summary: firstSpeakerArg.summary }
         ];
         setDebate(currentDebate);
         
         await new Promise(resolve => setTimeout(resolve, 1000));
         
-        // Generate second speaker's argument with round-specific prompt
+        // Second speaker's turn
+        setLoadingState({
+          isLoading: true,
+          round,
+          speaker: 'Second',
+          type: getRoundTitle(round).title.split(':')[1].trim()
+        });
+        
         const secondSpeakerArg = await generateArgument(
           settings.topic,
           settings.model2.stance,
@@ -329,11 +370,11 @@ const DebateEngine: React.FC = () => {
         
         currentDebate = [
           ...currentDebate,
-          { speaker: "Second Speaker", text: secondSpeakerArg }
+          { speaker: "Second Speaker", text: secondSpeakerArg.text, summary: secondSpeakerArg.summary }
         ];
         setDebate(currentDebate);
 
-        if (round < 4) {
+        if (round < 3) {
           await new Promise(resolve => setTimeout(resolve, 1000));
         }
       }
@@ -342,6 +383,12 @@ const DebateEngine: React.FC = () => {
       alert('An error occurred during the debate. Please try again.');
     } finally {
       setIsDebating(false);
+      setLoadingState({
+        isLoading: false,
+        round: 0,
+        speaker: null,
+        type: ''
+      });
     }
   };
 
@@ -417,8 +464,37 @@ const DebateEngine: React.FC = () => {
     setShowGeneralSettings(!showGeneralSettings);
   };
 
+  const toggleArgumentExpansion = (roundIndex: number, speakerIndex: number) => {
+    const key = `${roundIndex}-${speakerIndex}`;
+    setExpandedArguments(prev => {
+      const newSet = new Set(prev);
+      if (newSet.has(key)) {
+        newSet.delete(key);
+      } else {
+        newSet.add(key);
+      }
+      return newSet;
+    });
+  };
+
   return (
     <div className="container mx-auto px-4 py-8">
+      {/* Floating Topic Header */}
+      {showFloatingTopic && debate.length > 0 && (
+        <motion.div
+          initial={{ y: -100, opacity: 0 }}
+          animate={{ y: 0, opacity: 1 }}
+          exit={{ y: -100, opacity: 0 }}
+          className="fixed top-0 left-0 right-0 z-50 bg-gray-900/95 backdrop-blur-sm border-b border-gray-700/50 shadow-lg"
+        >
+          <div className="container mx-auto px-4 py-3">
+            <h2 className="text-xl text-center font-light tracking-wide bg-gradient-to-r from-gray-400 via-gray-300 to-gray-400 bg-clip-text text-transparent">
+              {settings.topic}
+        </h2>
+          </div>
+        </motion.div>
+      )}
+
       <div className="max-w-6xl mx-auto">
         <motion.div
           initial={{ opacity: 0, y: -20 }}
@@ -426,8 +502,8 @@ const DebateEngine: React.FC = () => {
           transition={{ duration: 0.7, ease: "easeOut" }}
           className="text-center mb-12 relative overflow-hidden"
         >
-          {/* Background scrolling topics */}
-          <div className="absolute inset-0 opacity-[0.05] overflow-hidden pointer-events-none">
+                     {/* Background scrolling topics */}
+           <div className="absolute inset-0 opacity-[0.15] overflow-hidden pointer-events-none">
             <div className="grid grid-cols-3 gap-8 h-full">
               {/* Left column - slower */}
               <motion.div
@@ -500,7 +576,7 @@ const DebateEngine: React.FC = () => {
           </motion.p>
         </motion.div>
 
-        <div className="bg-gray-800 rounded-lg p-6 mb-6">
+        <div className="bg-blue-900/30 backdrop-blur-sm border border-blue-700/20 rounded-lg p-6 mb-6 shadow-xl">
           <div className="space-y-6">
             <div className="space-y-4">
               <div className="grid grid-cols-[1fr,auto] gap-4 py-4">
@@ -509,10 +585,10 @@ const DebateEngine: React.FC = () => {
                   Debate topic
                   </label>
                   <motion.input
-                    type="text"
-                    value={settings.topic}
-                    onChange={handleTopicChange}
-                    className="w-full bg-gray-900/50 rounded-lg px-6 py-4 text-lg text-white focus:outline-none focus:ring-2 focus:ring-blue-500/50 focus:bg-gray-900/70 transition-all duration-300 backdrop-blur-sm"
+              type="text"
+              value={settings.topic}
+              onChange={handleTopicChange}
+                    className="w-full bg-gray-950/50 rounded-lg px-6 py-4 text-lg text-white focus:outline-none focus:ring-2 focus:ring-blue-500/50 focus:bg-gray-900/70 transition-all duration-300 backdrop-blur-sm"
                     placeholder="Enter a topic to debate..."
                     whileFocus={{ scale: 1.01 }}
                     transition={{ type: "spring", stiffness: 300, damping: 20 }}
@@ -551,7 +627,7 @@ const DebateEngine: React.FC = () => {
                   </svg>
                   Advanced Settings
                 </button>
-              </div>
+          </div>
 
               {showGeneralSettings && (
                 <div className="mt-4 space-y-6 bg-gray-900/30 p-4 rounded-lg">
@@ -572,7 +648,7 @@ const DebateEngine: React.FC = () => {
                       {debateStyles.find(style => style.value === settings.debateStyle)?.description}
                     </p>
                   </div>
-
+                  
                   <div className="flex items-center gap-3 group relative">
                     <span className="text-white">Moderator</span>
                     <button
@@ -608,15 +684,15 @@ const DebateEngine: React.FC = () => {
                   >
                     <h3 className="text-xl mb-4 text-white">{modelNum === 1 ? "First Speaker" : "Second Speaker"}</h3>
                     <div className="space-y-4">
-                      <div>
+                  <div>
                         <label className="block mb-1 text-gray-300">Argument Stance</label>
                         <div className="flex items-center space-x-2">
                           <span className="text-red-500 text-sm">Against</span>
-                          <input
-                            type="range"
+                    <input
+                      type="range"
                             min="-1"
-                            max="1"
-                            step="0.1"
+                      max="1"
+                      step="0.1"
                             value={model.stance}
                             onChange={(e) => handleModelSettingChange(modelNum as 1 | 2, 'stance', parseFloat(e.target.value))}
                             className="w-full h-2 rounded-lg appearance-none cursor-pointer"
@@ -685,44 +761,47 @@ const DebateEngine: React.FC = () => {
                             </select>
                             <div className="text-sm text-gray-400 mt-1">
                               {rhetoricStyles.find(style => style.value === model.rhetoricStyle)?.description}
-                            </div>
-                          </div>
+                    </div>
+                  </div>
 
-                          <div>
+                  <div>
                             <label className="block mb-1 text-gray-300">Personality & Behavior Hints</label>
-                            <textarea
+                    <textarea
                               value={model.systemPrompt}
-                              onChange={(e) => handleModelSettingChange(modelNum as 1 | 2, 'systemPrompt', e.target.value)}
+                      onChange={(e) => handleModelSettingChange(modelNum as 1 | 2, 'systemPrompt', e.target.value)}
                               className="w-full rounded px-3 py-2 h-24 text-white transition-colors duration-300"
                               style={{ 
                                 backgroundColor: getInputBackgroundColor(model.stance).replace('0.3', '0.15')
                               }}
                               placeholder="Add details to adjust model behaviour such as 'Debate like the Pope' or 'talk from the perspective of a cat'..."
-                            />
-                          </div>
-                        </div>
+                    />
+                  </div>
+                </div>
                       )}
                     </div>
                   </div>
                 );
               })}
-            </div>
+              </div>
           </div>
-        </div>
+          </div>
 
         <div className="text-center mt-8">
-          <button
-            onClick={startDebate}
-            disabled={isDebating || !settings.topic}
+            <button
+              onClick={startDebate}
+              disabled={isDebating || !settings.topic}
             className="bg-blue-600 hover:bg-blue-700 disabled:bg-gray-600 px-8 py-3 rounded-lg font-semibold transition-colors text-white"
-          >
-            {isDebating ? `Round ${currentRound} of ${settings.rounds} in Progress...` : 'Start Debate'}
-          </button>
-        </div>
+            >
+              {isDebating ? 'Debate in Progress...' : 'Start Debate'}
+            </button>
+          </div>
 
-        {debate.length > 0 && (
+          {debate.length > 0 && (
           <div className="mt-8 space-y-6">
-            <h2 className="text-2xl text-center mb-12 font-light tracking-wide bg-gradient-to-r from-gray-400 via-gray-300 to-gray-400 bg-clip-text text-transparent">
+            <h2 
+              ref={topicRef}
+              className="text-2xl text-center mb-12 font-light tracking-wide bg-gradient-to-r from-gray-400 via-gray-300 to-gray-400 bg-clip-text text-transparent"
+            >
               {settings.topic}
             </h2>
             
@@ -757,13 +836,39 @@ const DebateEngine: React.FC = () => {
                           border: `1px solid ${getStanceBackgroundColor(settings.model1.stance).replace('0.1', '0.3')}`,
                         }}
                       >
-                        <div className="flex items-center gap-3 mb-3">
+                        <div className="flex items-center justify-between mb-3">
                           <div className="text-lg font-semibold" style={{ color: getStanceColor(settings.model1.stance) }}>
                             First Speaker
                           </div>
+                          <button
+                            onClick={() => toggleArgumentExpansion(roundIndex, firstSpeakerIndex)}
+                            className="text-gray-400 hover:text-white transition-colors duration-200 flex items-center gap-1"
+                          >
+                            {expandedArguments.has(`${roundIndex}-${firstSpeakerIndex}`) ? (
+                              <>
+                                <span className="text-sm">Show Less</span>
+                                <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 15l7-7 7 7" />
+                                </svg>
+                              </>
+                            ) : (
+                              <>
+                                <span className="text-sm">Show More</span>
+                                <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
+                                </svg>
+                              </>
+                            )}
+                          </button>
                         </div>
                         <div className="text-gray-200 leading-relaxed whitespace-pre-wrap">
-                          {debate[firstSpeakerIndex].text}
+                          {expandedArguments.has(`${roundIndex}-${firstSpeakerIndex}`) ? (
+                            debate[firstSpeakerIndex].text
+                          ) : (
+                            <div>
+                              <p className="text-gray-300">{debate[firstSpeakerIndex].summary}</p>
+                            </div>
+                          )}
                         </div>
                       </div>
                     </motion.div>
@@ -783,13 +888,39 @@ const DebateEngine: React.FC = () => {
                           border: `1px solid ${getStanceBackgroundColor(settings.model2.stance).replace('0.1', '0.3')}`,
                         }}
                       >
-                        <div className="flex items-center gap-3 mb-3 justify-end">
+                        <div className="flex items-center justify-between mb-3">
+                          <button
+                            onClick={() => toggleArgumentExpansion(roundIndex, secondSpeakerIndex)}
+                            className="text-gray-400 hover:text-white transition-colors duration-200 flex items-center gap-1"
+                          >
+                            {expandedArguments.has(`${roundIndex}-${secondSpeakerIndex}`) ? (
+                              <>
+                                <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 15l7-7 7 7" />
+                                </svg>
+                                <span className="text-sm">Show Less</span>
+                              </>
+                            ) : (
+                              <>
+                                <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
+                                </svg>
+                                <span className="text-sm">Show More</span>
+                              </>
+                            )}
+                          </button>
                           <div className="text-lg font-semibold" style={{ color: getStanceColor(settings.model2.stance) }}>
                             Second Speaker
                           </div>
                         </div>
                         <div className="text-gray-200 leading-relaxed whitespace-pre-wrap">
-                          {debate[secondSpeakerIndex].text}
+                          {expandedArguments.has(`${roundIndex}-${secondSpeakerIndex}`) ? (
+                            debate[secondSpeakerIndex].text
+                          ) : (
+                            <div>
+                              <p className="text-gray-300">{debate[secondSpeakerIndex].summary}</p>
+                            </div>
+                          )}
                         </div>
                       </div>
                     </motion.div>
@@ -797,8 +928,56 @@ const DebateEngine: React.FC = () => {
                 </div>
               );
             })}
+
+            {/* Loading Indicator - Moved to end of debate content */}
+            {loadingState.isLoading && (
+              <motion.div
+                initial={{ opacity: 0, y: 20 }}
+                animate={{ opacity: 1, y: 0 }}
+                exit={{ opacity: 0, y: -20 }}
+                className="mt-8 p-4 rounded-lg bg-gray-800/50 backdrop-blur-sm border border-gray-700/50"
+              >
+                <div className="flex items-center justify-center space-x-3">
+                  <div className="animate-spin rounded-full h-5 w-5 border-b-2 border-blue-500"></div>
+                  <div className="text-gray-300">
+                    <span className="font-semibold">{loadingState.speaker} Speaker</span>
+                    <span className="mx-2">|</span>
+                    <span>Round {loadingState.round}</span>
+                    <span className="mx-2">|</span>
+                    <span className="text-blue-400">{loadingState.type}</span>
+                  </div>
+                </div>
+                <div className="mt-2 text-sm text-gray-400 text-center">
+                  Generating response, this may take a moment...
+                </div>
+              </motion.div>
+            )}
           </div>
         )}
+
+        {/* Show loading indicator even when no debate content exists yet */}
+        {loadingState.isLoading && debate.length === 0 && (
+          <motion.div
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            exit={{ opacity: 0, y: -20 }}
+            className="mt-8 p-4 rounded-lg bg-gray-800/50 backdrop-blur-sm border border-gray-700/50"
+          >
+            <div className="flex items-center justify-center space-x-3">
+              <div className="animate-spin rounded-full h-5 w-5 border-b-2 border-blue-500"></div>
+              <div className="text-gray-300">
+                <span className="font-semibold">{loadingState.speaker} Speaker</span>
+                <span className="mx-2">|</span>
+                <span>Round {loadingState.round}</span>
+                <span className="mx-2">|</span>
+                <span className="text-blue-400">{loadingState.type}</span>
+              </div>
+            </div>
+            <div className="mt-2 text-sm text-gray-400 text-center">
+              Generating response, this may take a moment...
+            </div>
+          </motion.div>
+          )}
       </div>
     </div>
   );

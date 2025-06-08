@@ -32,26 +32,6 @@ const Navigation: React.FC = () => {
                 Debate Engine
               </Link>
               <Link
-                to="/history"
-                className={`${
-                  isActive('/history')
-                    ? 'border-blue-500 text-white'
-                    : 'border-transparent text-gray-300 hover:border-gray-300 hover:text-white'
-                } inline-flex items-center px-1 pt-1 border-b-2 text-sm font-medium`}
-              >
-                History
-              </Link>
-              <Link
-                to="/community"
-                className={`${
-                  isActive('/community')
-                    ? 'border-blue-500 text-white'
-                    : 'border-transparent text-gray-300 hover:border-gray-300 hover:text-white'
-                } inline-flex items-center px-1 pt-1 border-b-2 text-sm font-medium`}
-              >
-                Community
-              </Link>
-              <Link
                 to="/about"
                 className={`${
                   isActive('/about')
