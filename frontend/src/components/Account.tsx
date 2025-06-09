@@ -1,11 +1,30 @@
-import React from 'react';
+import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../hooks/useAuth';
-import { User } from 'firebase/auth';
+import { getDebateUsage } from '../services/debateUsage';
+import { DebateUsage } from '../types';
+import { Timestamp } from 'firebase/firestore';
 
 const Account: React.FC = () => {
   const { user, signOut } = useAuth();
   const navigate = useNavigate();
+  const [debateUsage, setDebateUsage] = useState<DebateUsage | null>(null);
+
+  useEffect(() => {
+    const fetchDebateUsage = async () => {
+      if (user) {
+        console.log('Fetching debate usage for user:', { 
+          uid: user.uid, 
+          email: user.email,
+          user: user // Log full user object
+        });
+        const usage = await getDebateUsage(user.uid, user.email);
+        console.log('Received debate usage:', usage);
+        setDebateUsage(usage);
+      }
+    };
+    fetchDebateUsage();
+  }, [user]);
 
   const handleSignOut = async () => {
     try {
@@ -21,9 +40,18 @@ const Account: React.FC = () => {
     return null;
   }
 
-  const formatDate = (dateString: string | undefined) => {
-    if (!dateString) return 'Unknown';
-    const date = new Date(dateString);
+  const formatDate = (value: string | undefined | Timestamp | null) => {
+    if (!value) return 'Unknown';
+    
+    let date: Date;
+    if (typeof value === 'string') {
+      date = new Date(value);
+    } else if (value instanceof Timestamp) {
+      date = value.toDate();
+    } else {
+      return 'Unknown';
+    }
+
     return date.toLocaleDateString('en-US', {
       year: 'numeric',
       month: 'long',
@@ -31,15 +59,8 @@ const Account: React.FC = () => {
     });
   };
 
-  const getMemberSince = () => {
-    try {
-      const firebaseUser = user as User;
-      return formatDate(firebaseUser?.metadata?.creationTime);
-    } catch (error) {
-      console.error('Error getting member since date:', error);
-      return 'Unknown';
-    }
-  };
+  const memberSinceDate = formatDate(user.metadata?.creationTime);
+  const lastDebateDate = debateUsage?.lastDebateStarted ? formatDate(debateUsage.lastDebateStarted) : 'Never';
 
   return (
     <div className="min-h-screen bg-gray-900 py-12 px-4 sm:px-6 lg:px-8">
@@ -70,12 +91,39 @@ const Account: React.FC = () => {
                 <div className="bg-gray-800/50 rounded-lg p-4">
                   <div className="text-sm font-medium text-gray-400">Member Since</div>
                   <div className="mt-1 text-2xl font-semibold text-white">
-                    {getMemberSince()}
+                    {memberSinceDate}
                   </div>
                 </div>
                 <div className="bg-gray-800/50 rounded-lg p-4">
-                  <div className="text-sm font-medium text-gray-400">Account Status</div>
-                  <div className="mt-1 text-2xl font-semibold text-white">Active</div>
+                  <div 
+                    className="text-sm font-medium text-gray-400 cursor-help flex items-center gap-1"
+                    title="After a week without debates you get 1 for free!"
+                  >
+                    Free Debates Remaining
+                    <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4 text-gray-500" viewBox="0 0 20 20" fill="currentColor">
+                      <path fillRule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7-4a1 1 0 11-2 0 1 1 0 012 0zM9 9a1 1 0 000 2v3a1 1 0 001 1h1a1 1 0 100-2v-3a1 1 0 00-1-1H9z" clipRule="evenodd" />
+                    </svg>
+                  </div>
+                  <div className="mt-1 text-2xl font-semibold text-white flex items-center gap-2">
+                    {debateUsage?.freeDebatesRemaining || 0}
+                    {debateUsage?.freeDebatesRemaining === 0 && debateUsage?.lastDebateStarted && (
+                      <span className="text-sm text-gray-400 font-normal">
+                        (Refreshes after 6 days of inactivity)
+                      </span>
+                    )}
+                  </div>
+                </div>
+                <div className="bg-gray-800/50 rounded-lg p-4">
+                  <div className="text-sm font-medium text-gray-400">Last Debate</div>
+                  <div className="mt-1 text-2xl font-semibold text-white">
+                    {lastDebateDate}
+                  </div>
+                </div>
+                <div className="bg-gray-800/50 rounded-lg p-4">
+                  <div className="text-sm font-medium text-gray-400">Total Debates Generated</div>
+                  <div className="mt-1 text-2xl font-semibold text-white">
+                    {debateUsage?.totalDebates || 0}
+                  </div>
                 </div>
               </div>
             </div>

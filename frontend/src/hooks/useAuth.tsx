@@ -5,6 +5,10 @@ import { onAuthStateChanged, signOut as firebaseSignOut, User as FirebaseUser } 
 interface User {
   email: string | null;
   uid: string;
+  metadata?: {
+    creationTime?: string;
+    lastSignInTime?: string;
+  };
 }
 
 interface AuthContextType {
@@ -27,7 +31,11 @@ export const AuthProvider: FC<AuthProviderProps> = ({ children }) => {
       if (firebaseUser) {
         setUser({
           email: firebaseUser.email,
-          uid: firebaseUser.uid
+          uid: firebaseUser.uid,
+          metadata: {
+            creationTime: firebaseUser.metadata.creationTime,
+            lastSignInTime: firebaseUser.metadata.lastSignInTime
+          }
         });
       } else {
         setUser(null);
@@ -40,7 +48,11 @@ export const AuthProvider: FC<AuthProviderProps> = ({ children }) => {
   const signIn = (firebaseUser: FirebaseUser) => {
     setUser({
       email: firebaseUser.email,
-      uid: firebaseUser.uid
+      uid: firebaseUser.uid,
+      metadata: {
+        creationTime: firebaseUser.metadata.creationTime,
+        lastSignInTime: firebaseUser.metadata.lastSignInTime
+      }
     });
   };
 
@@ -50,7 +62,6 @@ export const AuthProvider: FC<AuthProviderProps> = ({ children }) => {
       setUser(null);
     } catch (error) {
       console.error('Error signing out:', error);
-      throw error;
     }
   };
 
@@ -61,10 +72,12 @@ export const AuthProvider: FC<AuthProviderProps> = ({ children }) => {
   );
 };
 
-export const useAuth = (): AuthContextType => {
+export const useAuth = () => {
   const context = useContext(AuthContext);
   if (context === undefined) {
     throw new Error('useAuth must be used within an AuthProvider');
   }
   return context;
-}; 
+};
+
+export default useAuth; 
