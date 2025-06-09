@@ -1,10 +1,7 @@
-import React, { useState, useMemo, useEffect } from 'react';
+import React, { useState, useMemo } from 'react';
 import { useAuth } from '../hooks/useAuth';
 import { motion } from 'framer-motion';
 import { generateArgument } from '../config/openai';
-import Modal from './Modal';
-import { Link } from 'react-router-dom';
-import { incrementDebateCount, getDebateUsage } from '../services/debateUsage';
 
 interface AIModel {
   name: string;
@@ -183,8 +180,6 @@ const DebateEngine: React.FC = () => {
   const [showAdvancedSettings, setShowAdvancedSettings] = useState(false);
   const [showGeneralSettings, setShowGeneralSettings] = useState(false);
   const [showFloatingTopic, setShowFloatingTopic] = useState(false);
-  const [freeDebatesRemaining, setFreeDebatesRemaining] = useState<number | null>(null);
-  const [showNoDebatesMessage, setShowNoDebatesMessage] = useState(false);
   const [loadingState, setLoadingState] = useState<{
     isLoading: boolean;
     round: number;
@@ -196,7 +191,6 @@ const DebateEngine: React.FC = () => {
     speaker: null,
     type: ''
   });
-  const [showLoginModal, setShowLoginModal] = useState(false);
   
   // Create a ref for the topic element
   const topicRef = React.useRef<HTMLHeadingElement>(null);
@@ -247,17 +241,6 @@ const DebateEngine: React.FC = () => {
   const [currentRound, setCurrentRound] = useState(1);
   const [debateId, setDebateId] = useState<string | null>(null);
   const [expandedArguments, setExpandedArguments] = useState<Set<string>>(new Set());
-
-  // Fetch free debates count when user changes
-  useEffect(() => {
-    const fetchDebateUsage = async () => {
-      if (user) {
-        const usage = await getDebateUsage(user.uid, user.email);
-        setFreeDebatesRemaining(usage?.freeDebatesRemaining ?? 0);
-      }
-    };
-    fetchDebateUsage();
-  }, [user]);
 
   const handleTopicChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     setSettings({ ...settings, topic: e.target.value });
@@ -333,35 +316,10 @@ const DebateEngine: React.FC = () => {
   const startDebate = async () => {
     if (!settings.topic) return;
     
-    if (!user) {
-      setShowLoginModal(true);
-      return;
-    }
-
-    // Check if user has free debates available
-    if (freeDebatesRemaining === 0) {
-      setShowNoDebatesMessage(true);
-      return;
-    }
-    
-    // Set loading state first
-    setIsDebating(true);
-    setShowNoDebatesMessage(false); // Hide message when starting new debate
-    
-    // Increment debate count immediately when clicking Start Debate
-    try {
-      console.log('Starting debate - incrementing count for user:', user.uid);
-      await incrementDebateCount(user.uid);
-      setFreeDebatesRemaining(prev => (prev !== null ? prev - 1 : 0));
-      console.log('Successfully incremented debate count');
-    } catch (error) {
-      console.error('Error incrementing debate count:', error);
-      // Continue with debate even if tracking fails
-    }
-    
     // Clear existing debate state
     setDebate([]);
     setCurrentRound(0);
+    setIsDebating(true);
     setSettings(prev => ({ ...prev, rounds: 3 }));
     
     try {
@@ -423,7 +381,6 @@ const DebateEngine: React.FC = () => {
     } catch (error) {
       console.error('Error during debate:', error);
       alert('An error occurred during the debate. Please try again.');
-      // Note: We don't decrement the debate count on error since the user did start a debate
     } finally {
       setIsDebating(false);
       setLoadingState({
@@ -521,25 +478,7 @@ const DebateEngine: React.FC = () => {
   };
 
   return (
-    <div className="min-h-screen bg-gray-900 text-white p-4 sm:p-6 lg:p-8">
-      {/* Login Modal */}
-      <Modal isOpen={showLoginModal} onClose={() => setShowLoginModal(false)}>
-        <div className="text-center text-white">
-          <h3 className="text-xl font-semibold mb-3">
-            Login Required
-          </h3>
-          <p className="mb-6">
-            Debating costs a lot, sign in for 2 free debates instantly!
-          </p>
-          <Link 
-            to="/login"
-            className="inline-block bg-white text-blue-500 font-semibold px-6 py-2 rounded-lg hover:bg-blue-50 hover:text-blue-700 transition-colors"
-          >
-            Sign In
-          </Link>
-        </div>
-      </Modal>
-
+    <div className="container mx-auto px-4 py-8">
       {/* Floating Topic Header */}
       {showFloatingTopic && debate.length > 0 && (
         <motion.div
@@ -691,13 +630,13 @@ const DebateEngine: React.FC = () => {
           </div>
 
               {showGeneralSettings && (
-                <div className="mt-4 space-y-6  rounded-lg p-4">
+                <div className="mt-4 space-y-6 bg-blue-900/30 backdrop-blur-sm border border-blue-700/20 rounded-lg p-4 shadow-xl">
                   <div>
                     <label className="block mb-2 text-gray-300">Debate Format</label>
                     <select
                       value={settings.debateStyle}
                       onChange={(e) => setSettings({ ...settings, debateStyle: e.target.value })}
-                      className="w-1/2 bg-gray-900 rounded px-3 py-2 text-white"
+                      className="w-full bg-gray-900 rounded px-3 py-2 text-white"
                     >
                       {debateStyles.map((style) => (
                         <option key={style.value} value={style.value} className="text-white bg-gray-800">
@@ -850,22 +789,12 @@ const DebateEngine: React.FC = () => {
         <div className="text-center mt-8">
             <button
               onClick={startDebate}
-              disabled={!!(isDebating || !settings.topic)}
-              className="bg-blue-600 hover:bg-blue-700 disabled:bg-gray-600 px-8 py-3 rounded-lg font-semibold transition-colors text-white"
+              disabled={isDebating || !settings.topic}
+            className="bg-blue-600 hover:bg-blue-700 disabled:bg-gray-600 px-8 py-3 rounded-lg font-semibold transition-colors text-white"
             >
               {isDebating ? 'Debate in Progress...' : 'Start Debate'}
             </button>
           </div>
-
-          {user && showNoDebatesMessage && freeDebatesRemaining === 0 && (
-          <motion.div 
-            initial={{ opacity: 0, y: -10 }}
-            animate={{ opacity: 1, y: 0 }}
-            className="mt-3 text-blue-400 text-sm max-w-md mx-auto"
-          >
-            No free debates left. Next free debate within 7 days or consider supporting us by purchasing a PRO account 👑
-          </motion.div>
-        )}
 
           {debate.length > 0 && (
           <div className="mt-8 space-y-6">
