@@ -630,13 +630,13 @@ const DebateEngine: React.FC = () => {
           </div>
 
               {showGeneralSettings && (
-                <div className="mt-4 space-y-6  rounded-lg p-4">
+                <div className="mt-4 space-y-6 bg-blue-900/30 backdrop-blur-sm border border-blue-700/20 rounded-lg p-4 shadow-xl">
                   <div>
                     <label className="block mb-2 text-gray-300">Debate Format</label>
                     <select
                       value={settings.debateStyle}
                       onChange={(e) => setSettings({ ...settings, debateStyle: e.target.value })}
-                      className="w-1/2 bg-gray-900 rounded px-3 py-2 text-white"
+                      className="w-full bg-gray-900 rounded px-3 py-2 text-white"
                     >
                       {debateStyles.map((style) => (
                         <option key={style.value} value={style.value} className="text-white bg-gray-800">
