@@ -1,13 +1,16 @@
-import React, { createContext, useContext, useState, ReactNode, FC } from 'react';
+import React, { createContext, useContext, useState, useEffect, ReactNode, FC } from 'react';
+import { auth } from '../config/firebase.config';
+import { onAuthStateChanged, signOut as firebaseSignOut, User as FirebaseUser } from 'firebase/auth';
 
 interface User {
-  email: string;
+  email: string | null;
+  uid: string;
 }
 
 interface AuthContextType {
   user: User | null;
-  signIn: (email: string) => void;
-  signOut: () => void;
+  signIn: (user: FirebaseUser) => void;
+  signOut: () => Promise<void>;
 }
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
@@ -19,12 +22,36 @@ interface AuthProviderProps {
 export const AuthProvider: FC<AuthProviderProps> = ({ children }) => {
   const [user, setUser] = useState<User | null>(null);
 
-  const signIn = (email: string) => {
-    setUser({ email });
+  useEffect(() => {
+    const unsubscribe = onAuthStateChanged(auth, (firebaseUser) => {
+      if (firebaseUser) {
+        setUser({
+          email: firebaseUser.email,
+          uid: firebaseUser.uid
+        });
+      } else {
+        setUser(null);
+      }
+    });
+
+    return () => unsubscribe();
+  }, []);
+
+  const signIn = (firebaseUser: FirebaseUser) => {
+    setUser({
+      email: firebaseUser.email,
+      uid: firebaseUser.uid
+    });
   };
 
-  const signOut = () => {
-    setUser(null);
+  const signOut = async () => {
+    try {
+      await firebaseSignOut(auth);
+      setUser(null);
+    } catch (error) {
+      console.error('Error signing out:', error);
+      throw error;
+    }
   };
 
   return (

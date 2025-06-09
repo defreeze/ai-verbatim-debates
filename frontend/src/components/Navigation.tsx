@@ -46,13 +46,12 @@ const Navigation: React.FC = () => {
           <div className="hidden sm:ml-6 sm:flex sm:items-center">
             {user ? (
               <div className="flex items-center space-x-4">
-                <span className="text-gray-300">{user.email}</span>
-                <button
-                  onClick={() => signOut()}
-                  className="bg-gray-800 p-2 rounded-md text-gray-400 hover:text-white focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-offset-gray-800 focus:ring-white"
+                <Link
+                  to="/account"
+                  className="bg-blue-600 px-4 py-2 rounded-md text-sm font-medium text-white hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-offset-gray-800 focus:ring-white"
                 >
-                  Sign Out
-                </button>
+                  Account
+                </Link>
               </div>
             ) : (
               <Link
