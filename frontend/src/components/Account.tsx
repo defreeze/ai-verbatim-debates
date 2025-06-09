@@ -1,7 +1,7 @@
 import React from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../hooks/useAuth';
-import { User as FirebaseUser } from 'firebase/auth';
+import { User } from 'firebase/auth';
 
 const Account: React.FC = () => {
   const { user, signOut } = useAuth();
@@ -20,6 +20,18 @@ const Account: React.FC = () => {
     navigate('/login');
     return null;
   }
+
+  const formatDate = (dateString: string | undefined) => {
+    if (!dateString) return 'Unknown';
+    const date = new Date(dateString);
+    return date.toLocaleDateString('en-US', {
+      year: 'numeric',
+      month: 'long',
+      day: 'numeric'
+    });
+  };
+
+  const memberSince = formatDate((user as User).metadata.creationTime);
 
   return (
     <div className="min-h-screen bg-gray-900 py-12 px-4 sm:px-6 lg:px-8">
@@ -50,9 +62,7 @@ const Account: React.FC = () => {
                 <div className="bg-gray-800/50 rounded-lg p-4">
                   <div className="text-sm font-medium text-gray-400">Member Since</div>
                   <div className="mt-1 text-2xl font-semibold text-white">
-                    {(user as unknown as FirebaseUser).metadata?.creationTime 
-                      ? new Date((user as unknown as FirebaseUser).metadata.creationTime as string).toLocaleDateString()
-                      : 'Unknown'}
+                    {memberSince}
                   </div>
                 </div>
                 <div className="bg-gray-800/50 rounded-lg p-4">
