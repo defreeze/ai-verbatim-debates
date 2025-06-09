@@ -31,7 +31,15 @@ const Account: React.FC = () => {
     });
   };
 
-  const memberSince = formatDate((user as User).metadata.creationTime);
+  const getMemberSince = () => {
+    try {
+      const firebaseUser = user as User;
+      return formatDate(firebaseUser?.metadata?.creationTime);
+    } catch (error) {
+      console.error('Error getting member since date:', error);
+      return 'Unknown';
+    }
+  };
 
   return (
     <div className="min-h-screen bg-gray-900 py-12 px-4 sm:px-6 lg:px-8">
@@ -62,7 +70,7 @@ const Account: React.FC = () => {
                 <div className="bg-gray-800/50 rounded-lg p-4">
                   <div className="text-sm font-medium text-gray-400">Member Since</div>
                   <div className="mt-1 text-2xl font-semibold text-white">
-                    {memberSince}
+                    {getMemberSince()}
                   </div>
                 </div>
                 <div className="bg-gray-800/50 rounded-lg p-4">
