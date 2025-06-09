@@ -630,7 +630,7 @@ const DebateEngine: React.FC = () => {
           </div>
 
               {showGeneralSettings && (
-                <div className="mt-4 space-y-6 bg-gray-900/30 p-4 rounded-lg">
+                <div className="mt-4 space-y-6 bg-blue-900/30 backdrop-blur-sm border border-blue-700/20 rounded-lg p-4 shadow-xl">
                   <div>
                     <label className="block mb-2 text-gray-300">Debate Format</label>
                     <select
