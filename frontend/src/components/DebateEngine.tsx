@@ -2,6 +2,8 @@ import React, { useState, useMemo } from 'react';
 import { useAuth } from '../hooks/useAuth';
 import { motion } from 'framer-motion';
 import { generateArgument } from '../config/openai';
+import Modal from './Modal';
+import { Link } from 'react-router-dom';
 
 interface AIModel {
   name: string;
@@ -191,6 +193,7 @@ const DebateEngine: React.FC = () => {
     speaker: null,
     type: ''
   });
+  const [showLoginModal, setShowLoginModal] = useState(false);
   
   // Create a ref for the topic element
   const topicRef = React.useRef<HTMLHeadingElement>(null);
@@ -315,6 +318,11 @@ const DebateEngine: React.FC = () => {
 
   const startDebate = async () => {
     if (!settings.topic) return;
+    
+    if (!user) {
+      setShowLoginModal(true);
+      return;
+    }
     
     // Clear existing debate state
     setDebate([]);
@@ -478,7 +486,25 @@ const DebateEngine: React.FC = () => {
   };
 
   return (
-    <div className="container mx-auto px-4 py-8">
+    <div className="min-h-screen bg-gray-900 text-white p-4 sm:p-6 lg:p-8">
+      {/* Login Modal */}
+      <Modal isOpen={showLoginModal} onClose={() => setShowLoginModal(false)}>
+        <div className="text-center text-white">
+          <h3 className="text-xl font-semibold mb-3">
+            Login Required
+          </h3>
+          <p className="mb-6">
+            Debating costs a lot! Please log in for 2 free debates.
+          </p>
+          <Link 
+            to="/login"
+            className="inline-block bg-white text-blue-500 font-semibold px-6 py-2 rounded-lg hover:bg-blue-50 hover:text-blue-700 transition-colors"
+          >
+            Sign In
+          </Link>
+        </div>
+      </Modal>
+
       {/* Floating Topic Header */}
       {showFloatingTopic && debate.length > 0 && (
         <motion.div
