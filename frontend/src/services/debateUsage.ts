@@ -78,7 +78,7 @@ export const getDebateUsage = async (userId: string, userEmail: string | null): 
     const initialUsage: DebateUsage = {
       userId,
       totalDebates: 0,
-      freeDebatesRemaining: userEmail?.toLowerCase() === TEST_EMAIL.toLowerCase() ? 100 : INITIAL_FREE_DEBATES,
+      freeDebatesRemaining: INITIAL_FREE_DEBATES,  // Always give 2 free debates to new users
       lastDebateStarted: now,
       createdAt: now,
       updatedAt: now

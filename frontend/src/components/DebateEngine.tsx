@@ -189,7 +189,8 @@ const categories = [
   'Economics',
   'Environment',
   'Ethics',
-  'Culture'
+  'Culture',
+  'Funny'
 ];
 
 const DebateEngine: React.FC = () => {
@@ -199,6 +200,7 @@ const DebateEngine: React.FC = () => {
   const [showFloatingTopic, setShowFloatingTopic] = useState(false);
   const [freeDebatesRemaining, setFreeDebatesRemaining] = useState<number | null>(null);
   const [showNoDebatesMessage, setShowNoDebatesMessage] = useState(false);
+  const [isSaved, setIsSaved] = useState(false);
   const [loadingState, setLoadingState] = useState<{
     isLoading: boolean;
     round: number;
@@ -214,6 +216,8 @@ const DebateEngine: React.FC = () => {
   const [showCategoryModal, setShowCategoryModal] = useState(false);
   const [selectedCategories, setSelectedCategories] = useState<string[]>([]);
   const [isSaving, setIsSaving] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+  const [debateId, setDebateId] = useState<string | null>(null);
   
   // Create a ref for the topic element
   const topicRef = React.useRef<HTMLHeadingElement>(null);
@@ -262,7 +266,6 @@ const DebateEngine: React.FC = () => {
   const [debate, setDebate] = useState<Array<{ speaker: string; text: string; summary: string }>>([]);
   const [isDebating, setIsDebating] = useState(false);
   const [currentRound, setCurrentRound] = useState(1);
-  const [debateId, setDebateId] = useState<string | null>(null);
   const [expandedArguments, setExpandedArguments] = useState<Set<string>>(new Set());
 
   // Fetch free debates count when user changes
@@ -547,19 +550,18 @@ const DebateEngine: React.FC = () => {
     try {
       // Create debate summary object
       const now = new Date().toISOString();
+      
+      // Create a new document reference to get the ID
+      const userDebateRef = doc(collection(db, `users/${user.uid}/debates`));
+      const newDebateId = userDebateRef.id;
+      
       const debateSummary = {
+        id: newDebateId, // Store the ID in the document
         userId: user.uid,
         userDisplayName: user.displayName || 'Anonymous User',
         topic: settings.topic,
         categories: selectedCategories,
         timestamp: now,
-        sharedAt: now,
-        views: 0,
-        upvotes: 1, // Start with one upvote from the creator
-        downvotes: 0,
-        votes: {
-          [user.uid]: 'upvote' // Record creator's upvote
-        },
         isPro: user.isPro || false,
         model1: {
           name: settings.model1.name,
@@ -573,86 +575,29 @@ const DebateEngine: React.FC = () => {
         },
         rounds: debate.map((round) => ({
           speaker: round.speaker,
-          // Store full text for pro users, only summary for free users
-          text: user.isPro ? round.text : round.summary,
+          text: round.text,
           summary: round.summary
         }))
       };
 
-      // Add to public_debates collection
-      const debateRef = collection(db, 'public_debates');
-      await addDoc(debateRef, debateSummary);
-
-      // Also add to user's debate history
-      const userDebateRef = doc(collection(db, `users/${user.uid}/debates`));
+      // Save to user's debate history
       await setDoc(userDebateRef, debateSummary);
+      
+      // Store the ID in state
+      setDebateId(newDebateId);
 
-      setShowCategoryModal(false);
-      // You might want to show a success message or redirect
+      // Show success message and mark as saved
+      setError('Debate saved to your history!');
+      setIsSaved(true);
+      setTimeout(() => setError(null), 3000);
+
     } catch (error) {
       console.error('Error saving debate:', error);
-      // Handle error appropriately
+      setError('Failed to save debate. Please try again.');
     } finally {
       setIsSaving(false);
     }
   };
-
-  // Add Category Selection Modal
-  const CategorySelectionModal = () => (
-    <Modal isOpen={showCategoryModal} onClose={() => setShowCategoryModal(false)}>
-      <div className="text-center text-white">
-        <h3 className="text-xl font-semibold mb-4">
-          Categorize Your Debate
-        </h3>
-        <p className="mb-4 text-gray-300">
-          Select categories that best describe your debate topic (up to 3)
-        </p>
-        <div className="grid grid-cols-2 gap-2 mb-6">
-          {categories.map((category) => (
-            <button
-              key={category}
-              onClick={() => {
-                if (selectedCategories.includes(category)) {
-                  setSelectedCategories(prev => prev.filter(c => c !== category));
-                } else if (selectedCategories.length < 3) {
-                  setSelectedCategories(prev => [...prev, category]);
-                }
-              }}
-              className={`px-3 py-2 rounded-lg text-sm transition-colors ${
-                selectedCategories.includes(category)
-                  ? 'bg-blue-600 text-white'
-                  : 'bg-gray-700/50 text-gray-300 hover:bg-gray-600/50'
-              } ${selectedCategories.length >= 3 && !selectedCategories.includes(category) ? 'opacity-50 cursor-not-allowed' : ''}`}
-            >
-              {category}
-            </button>
-          ))}
-        </div>
-        <div className="flex justify-end gap-3">
-          <button
-            onClick={() => setShowCategoryModal(false)}
-            className="px-4 py-2 bg-gray-700 hover:bg-gray-600 rounded-lg text-white transition-colors"
-          >
-            Cancel
-          </button>
-          <button
-            onClick={saveDebateToFirebase}
-            disabled={selectedCategories.length === 0 || isSaving}
-            className="px-4 py-2 bg-blue-600 hover:bg-blue-700 disabled:bg-gray-600 rounded-lg text-white transition-colors flex items-center gap-2"
-          >
-            {isSaving ? (
-              <>
-                <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white"></div>
-                Saving...
-              </>
-            ) : (
-              'Save Debate'
-            )}
-          </button>
-        </div>
-      </div>
-    </Modal>
-  );
 
   return (
     <div className="min-h-screen bg-gray-900 text-white p-4 sm:p-6 lg:p-8">
@@ -1157,6 +1102,80 @@ const DebateEngine: React.FC = () => {
                 </div>
               </motion.div>
             )}
+
+            {/* Show success/error messages */}
+            {error && (
+              <motion.div
+                initial={{ opacity: 0, y: -20 }}
+                animate={{ opacity: 1, y: 0 }}
+                className={`fixed top-4 right-4 p-4 rounded-lg shadow-xl z-50 ${
+                  error.includes('success') || error.includes('saved')
+                    ? 'bg-green-600/90'
+                    : 'bg-red-600/90'
+                } text-white backdrop-blur-sm`}
+              >
+                {error}
+              </motion.div>
+            )}
+
+            {/* Replace with category selection and save section */}
+            {!loadingState.isLoading && !isSaving && debate.length > 0 && (
+              <motion.div
+                initial={{ opacity: 0, y: 20 }}
+                animate={{ opacity: 1, y: 0 }}
+                className="mt-12 p-6 bg-gray-800/50 backdrop-blur-sm border border-gray-700/50 rounded-lg shadow-xl"
+              >
+                <h3 className="text-xl font-semibold mb-4 text-center text-white">
+                  Save Your Debate
+                </h3>
+                <p className="mb-6 text-gray-300 text-center">
+                  Select categories that best describe your debate topic (up to 3)
+                </p>
+                <div className="grid grid-cols-3 gap-3 mb-6">
+                  {categories.map((category) => (
+                    <button
+                      key={category}
+                      onClick={() => {
+                        if (selectedCategories.includes(category)) {
+                          setSelectedCategories(prev => prev.filter(c => c !== category));
+                        } else if (selectedCategories.length < 3) {
+                          setSelectedCategories(prev => [...prev, category]);
+                        }
+                      }}
+                      className={`px-4 py-3 rounded-lg text-sm transition-colors ${
+                        selectedCategories.includes(category)
+                          ? 'bg-blue-600 text-white'
+                          : 'bg-gray-700/50 text-gray-300 hover:bg-gray-600/50'
+                      } ${selectedCategories.length >= 3 && !selectedCategories.includes(category) ? 'opacity-50 cursor-not-allowed' : ''}`}
+                    >
+                      {category}
+                    </button>
+                  ))}
+                </div>
+                <div className="flex justify-center">
+                  <button
+                    onClick={saveDebateToFirebase}
+                    disabled={selectedCategories.length === 0 || isSaving || isSaved}
+                    className={`px-6 py-3 ${
+                      isSaved 
+                        ? 'bg-green-600 cursor-not-allowed' 
+                        : 'bg-blue-600 hover:bg-blue-700 disabled:bg-gray-600'
+                    } rounded-lg text-white transition-colors flex items-center gap-2 text-lg`}
+                  >
+                    {isSaving ? (
+                      <>
+                        <div className="animate-spin rounded-full h-5 w-5 border-b-2 border-white"></div>
+                        Saving Debate...
+                      </>
+                    ) : isSaved ? (
+                      'Debate Saved'
+                    ) : (
+                      'Save Debate'
+                    )}
+                  </button>
+                </div>
+              </motion.div>
+            )}
           </div>
         )}
 
@@ -1182,9 +1201,7 @@ const DebateEngine: React.FC = () => {
               Generating response, this may take a moment...
             </div>
           </motion.div>
-          )}
-        {/* Add CategorySelectionModal to the render */}
-        <CategorySelectionModal />
+        )}
       </div>
     </div>
   );
