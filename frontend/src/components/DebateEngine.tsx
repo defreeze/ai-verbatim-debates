@@ -5,6 +5,8 @@ import { generateArgument } from '../config/openai';
 import Modal from './Modal';
 import { Link } from 'react-router-dom';
 import { incrementDebateCount, getDebateUsage } from '../services/debateUsage';
+import { doc, setDoc, collection, addDoc } from 'firebase/firestore';
+import { db } from '../config/firebase';
 
 interface AIModel {
   name: string;
@@ -177,6 +179,18 @@ const debateTopics = [
   "The concept of self is a useful fiction."
 ];
 
+// Add categories constant at the top level
+const categories = [
+  'Politics',
+  'Technology',
+  'Philosophy',
+  'Science',
+  'Society',
+  'Economics',
+  'Environment',
+  'Ethics',
+  'Culture'
+];
 
 const DebateEngine: React.FC = () => {
   const { user } = useAuth();
@@ -197,6 +211,9 @@ const DebateEngine: React.FC = () => {
     type: ''
   });
   const [showLoginModal, setShowLoginModal] = useState(false);
+  const [showCategoryModal, setShowCategoryModal] = useState(false);
+  const [selectedCategories, setSelectedCategories] = useState<string[]>([]);
+  const [isSaving, setIsSaving] = useState(false);
   
   // Create a ref for the topic element
   const topicRef = React.useRef<HTMLHeadingElement>(null);
@@ -420,10 +437,12 @@ const DebateEngine: React.FC = () => {
           await new Promise(resolve => setTimeout(resolve, 1000));
         }
       }
+
+      // After debate is complete, show category selection modal
+      setShowCategoryModal(true);
     } catch (error) {
       console.error('Error during debate:', error);
       alert('An error occurred during the debate. Please try again.');
-      // Note: We don't decrement the debate count on error since the user did start a debate
     } finally {
       setIsDebating(false);
       setLoadingState({
@@ -519,6 +538,121 @@ const DebateEngine: React.FC = () => {
       return newSet;
     });
   };
+
+  // Function to save debate to Firebase
+  const saveDebateToFirebase = async () => {
+    if (!user) return;
+    
+    setIsSaving(true);
+    try {
+      // Create debate summary object
+      const now = new Date().toISOString();
+      const debateSummary = {
+        userId: user.uid,
+        userDisplayName: user.displayName || 'Anonymous User',
+        topic: settings.topic,
+        categories: selectedCategories,
+        timestamp: now,
+        sharedAt: now,
+        views: 0,
+        upvotes: 1, // Start with one upvote from the creator
+        downvotes: 0,
+        votes: {
+          [user.uid]: 'upvote' // Record creator's upvote
+        },
+        isPro: user.isPro || false,
+        model1: {
+          name: settings.model1.name,
+          stance: settings.model1.stance,
+          rhetoricStyle: settings.model1.rhetoricStyle
+        },
+        model2: {
+          name: settings.model2.name,
+          stance: settings.model2.stance,
+          rhetoricStyle: settings.model2.rhetoricStyle
+        },
+        rounds: debate.map((round) => ({
+          speaker: round.speaker,
+          // Store full text for pro users, only summary for free users
+          text: user.isPro ? round.text : round.summary,
+          summary: round.summary
+        }))
+      };
+
+      // Add to public_debates collection
+      const debateRef = collection(db, 'public_debates');
+      await addDoc(debateRef, debateSummary);
+
+      // Also add to user's debate history
+      const userDebateRef = doc(collection(db, `users/${user.uid}/debates`));
+      await setDoc(userDebateRef, debateSummary);
+
+      setShowCategoryModal(false);
+      // You might want to show a success message or redirect
+    } catch (error) {
+      console.error('Error saving debate:', error);
+      // Handle error appropriately
+    } finally {
+      setIsSaving(false);
+    }
+  };
+
+  // Add Category Selection Modal
+  const CategorySelectionModal = () => (
+    <Modal isOpen={showCategoryModal} onClose={() => setShowCategoryModal(false)}>
+      <div className="text-center text-white">
+        <h3 className="text-xl font-semibold mb-4">
+          Categorize Your Debate
+        </h3>
+        <p className="mb-4 text-gray-300">
+          Select categories that best describe your debate topic (up to 3)
+        </p>
+        <div className="grid grid-cols-2 gap-2 mb-6">
+          {categories.map((category) => (
+            <button
+              key={category}
+              onClick={() => {
+                if (selectedCategories.includes(category)) {
+                  setSelectedCategories(prev => prev.filter(c => c !== category));
+                } else if (selectedCategories.length < 3) {
+                  setSelectedCategories(prev => [...prev, category]);
+                }
+              }}
+              className={`px-3 py-2 rounded-lg text-sm transition-colors ${
+                selectedCategories.includes(category)
+                  ? 'bg-blue-600 text-white'
+                  : 'bg-gray-700/50 text-gray-300 hover:bg-gray-600/50'
+              } ${selectedCategories.length >= 3 && !selectedCategories.includes(category) ? 'opacity-50 cursor-not-allowed' : ''}`}
+            >
+              {category}
+            </button>
+          ))}
+        </div>
+        <div className="flex justify-end gap-3">
+          <button
+            onClick={() => setShowCategoryModal(false)}
+            className="px-4 py-2 bg-gray-700 hover:bg-gray-600 rounded-lg text-white transition-colors"
+          >
+            Cancel
+          </button>
+          <button
+            onClick={saveDebateToFirebase}
+            disabled={selectedCategories.length === 0 || isSaving}
+            className="px-4 py-2 bg-blue-600 hover:bg-blue-700 disabled:bg-gray-600 rounded-lg text-white transition-colors flex items-center gap-2"
+          >
+            {isSaving ? (
+              <>
+                <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white"></div>
+                Saving...
+              </>
+            ) : (
+              'Save Debate'
+            )}
+          </button>
+        </div>
+      </div>
+    </Modal>
+  );
 
   return (
     <div className="min-h-screen bg-gray-900 text-white p-4 sm:p-6 lg:p-8">
@@ -1049,6 +1183,8 @@ const DebateEngine: React.FC = () => {
             </div>
           </motion.div>
           )}
+        {/* Add CategorySelectionModal to the render */}
+        <CategorySelectionModal />
       </div>
     </div>
   );

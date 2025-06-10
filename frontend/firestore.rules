@@ -1,0 +1,38 @@
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+    // Helper functions
+    function isSignedIn() {
+      return request.auth != null;
+    }
+    
+    function isOwner(userId) {
+      return request.auth.uid == userId;
+    }
+    
+    // Debates collection
+    match /debates/{debateId} {
+      allow read: if isSignedIn() && isOwner(resource.data.userId);
+      allow create: if isSignedIn() && request.resource.data.userId == request.auth.uid;
+      allow update, delete: if isSignedIn() && isOwner(resource.data.userId);
+    }
+    
+    // Public debates collection
+    match /public_debates/{debateId} {
+      allow read: if true;  // Anyone can read public debates
+      allow create: if isSignedIn() && request.resource.data.userId == request.auth.uid;
+      allow update: if isSignedIn() && (
+        isOwner(resource.data.userId) || 
+        // Allow incrementing views and likes
+        (request.resource.data.diff(resource.data).affectedKeys().hasOnly(['views', 'likes']))
+      );
+      allow delete: if isSignedIn() && isOwner(resource.data.userId);
+    }
+    
+    // User-specific debate collections
+    match /users/{userId}/debates/{debateId} {
+      allow read: if isSignedIn() && isOwner(userId);
+      allow write: if isSignedIn() && isOwner(userId);
+    }
+  }
+} 

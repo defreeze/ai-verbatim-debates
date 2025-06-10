@@ -7,7 +7,7 @@ const Navigation: React.FC = () => {
   const location = useLocation();
 
   const isActive = (path: string) => {
-    return location.pathname === path;
+    return location.pathname.startsWith(path);
   };
 
   return (
@@ -24,12 +24,22 @@ const Navigation: React.FC = () => {
               <Link
                 to="/"
                 className={`${
-                  isActive('/')
+                  isActive('/') && location.pathname === '/'
                     ? 'border-blue-500 text-white'
                     : 'border-transparent text-gray-300 hover:border-gray-300 hover:text-white'
                 } inline-flex items-center px-1 pt-1 border-b-2 text-sm font-medium`}
               >
                 Debate Engine
+              </Link>
+              <Link
+                to="/community/ranking"
+                className={`${
+                  isActive('/community')
+                    ? 'border-blue-500 text-white'
+                    : 'border-transparent text-gray-300 hover:border-gray-300 hover:text-white'
+                } inline-flex items-center px-1 pt-1 border-b-2 text-sm font-medium`}
+              >
+                Community Hub
               </Link>
               <Link
                 to="/about"
