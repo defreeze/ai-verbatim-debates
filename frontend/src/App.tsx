@@ -4,7 +4,7 @@ import { AuthProvider } from './hooks/useAuth';
 import Navigation from './components/Navigation';
 import DebateEngine from './components/DebateEngine';
 import Login from './components/Login';
-import About from './components/About';
+import About from './pages/About';
 import History from './components/History';
 import Account from './components/Account';
 import CommunityHub from './components/CommunityHub';

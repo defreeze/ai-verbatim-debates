@@ -30,7 +30,7 @@ const About: React.FC = () => {
                   : 'text-gray-300 hover:text-white hover:bg-gray-700/50'
               }`}
             >
-              About us
+              The Philosophy
             </button>
             <button
               onClick={() => setActiveTab('science')}
@@ -40,7 +40,7 @@ const About: React.FC = () => {
                   : 'text-gray-300 hover:text-white hover:bg-gray-700/50'
               }`}
             >
-              About the Science
+              The Science
             </button>
           </nav>
         </div>
