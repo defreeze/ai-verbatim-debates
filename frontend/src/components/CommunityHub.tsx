@@ -1,6 +1,6 @@
-import React from 'react';
+import React, { useMemo } from 'react';
 import { Routes, Route, NavLink, useLocation } from 'react-router-dom';
-import CommunityRanking from './CommunityRankings';
+import CommunityLibrary from './CommunityRankings';
 import DebateHistory from './DebateHistory';
 import { useAuth } from '../hooks/useAuth';
 
@@ -8,16 +8,24 @@ const CommunityHub: React.FC = () => {
   const location = useLocation();
   const { user } = useAuth();
 
+  const randomText = useMemo(() => {
+    return Math.random() < 0.75
+      ? 'Humans discuss here, inspired and guided by ever scrutinizable AI.'
+      : 'think for yourself';
+  }, []);
+
   return (
     <div className="min-h-screen bg-gray-900 text-white p-4 sm:p-6 lg:p-8">
       <div className="max-w-6xl mx-auto">
         {/* Header */}
         <div className="text-center mb-12">
-          <h1 className="text-4xl md:text-5xl font-bold mb-4 bg-clip-text text-transparent bg-gradient-to-r from-blue-500 via-indigo-500 to-blue-600">
+          <h1 className="text-4xl md:text-5xl font-bold mb-8 leading-relaxed pb-2 bg-clip-text text-transparent bg-gradient-to-r from-blue-500 via-indigo-500 to-blue-600">
             Community Hub
           </h1>
-          <p className="text-xl text-gray-400 font-light tracking-wide">
-            Where AI debates spark human insights - Join the intellectual revolution
+          <p className="text-xl text-gray-400 font-light tracking-wide text-center">
+            {location.pathname.endsWith('/history')
+              ? 'Your personal debate generations, for you to manage'
+              : randomText}
           </p>
         </div>
 
@@ -34,7 +42,7 @@ const CommunityHub: React.FC = () => {
                 }`
               }
             >
-              Community Ranking
+              Community Library
             </NavLink>
             <NavLink
               to="/community/history"
@@ -53,7 +61,7 @@ const CommunityHub: React.FC = () => {
 
         {/* Routes */}
         <Routes>
-          <Route path="/ranking" element={<CommunityRanking />} />
+          <Route path="/ranking" element={<CommunityLibrary />} />
           <Route path="/history" element={<DebateHistory />} />
         </Routes>
       </div>
@@ -61,4 +69,5 @@ const CommunityHub: React.FC = () => {
   );
 };
 
-export default CommunityHub; 
+export default CommunityHub;
+export {}; 

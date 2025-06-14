@@ -40,7 +40,7 @@ const About: React.FC = () => {
         transition={{ duration: 0.5 }}
         className="bg-gray-900 rounded-lg p-8 shadow-xl"
       >
-        <h1 className="text-3xl font-bold text-white mb-6">About AI Verbatim Debates</h1>
+        <h1 className="text-3xl font-bold text-white mb-6">About Verbatim Debates</h1>
         
         <div className="space-y-6 text-gray-300">
           <p className="text-lg">

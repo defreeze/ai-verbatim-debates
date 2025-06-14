@@ -1,10 +1,11 @@
 import React, { useState, useEffect } from 'react';
-import { collection, query, where, orderBy, getDocs, doc, updateDoc, increment, deleteField, getDoc, deleteDoc } from 'firebase/firestore';
+import { collection, query, where, orderBy, getDocs, doc, updateDoc, increment, deleteField, getDoc, deleteDoc, setDoc } from 'firebase/firestore';
 import { db } from '../config/firebase';
 import { useAuth } from '../hooks/useAuth';
 import { motion, AnimatePresence } from 'framer-motion';
 import Modal from './Modal';
 import { Link } from 'react-router-dom';
+import { FaStar as FaStarIcon } from 'react-icons/fa';
 
 interface PublicDebate {
   id: string;
@@ -52,7 +53,7 @@ const categories = [
   'Funny'
 ];
 
-const CommunityRankings: React.FC = () => {
+const CommunityLibrary: React.FC = () => {
   const { user } = useAuth();
   const [debates, setDebates] = useState<PublicDebate[]>([]);
   const [loading, setLoading] = useState(true);
@@ -64,6 +65,11 @@ const CommunityRankings: React.FC = () => {
   const [userVotes, setUserVotes] = useState<Record<string, VoteType>>({});
   const [expandedRounds, setExpandedRounds] = useState<Set<string>>(new Set());
   const [showLoginModal, setShowLoginModal] = useState(false);
+  const [starredDebates, setStarredDebates] = useState<string[]>(() => {
+    const saved = localStorage.getItem('starredDebates');
+    return saved ? JSON.parse(saved) : [];
+  });
+  const [starFilter, setStarFilter] = useState(false);
 
   useEffect(() => {
     fetchDebates();
@@ -106,6 +112,21 @@ const CommunityRankings: React.FC = () => {
       console.error('Error loading user votes:', error);
     }
   };
+
+  // Load starred debates from Firestore on login
+  useEffect(() => {
+    const loadStarredFromFirebase = async () => {
+      if (user) {
+        const userRef = doc(db, 'users', user.uid);
+        const userSnap = await getDoc(userRef);
+        if (userSnap.exists() && userSnap.data().starredDebates) {
+          setStarredDebates(userSnap.data().starredDebates);
+          localStorage.setItem('starredDebates', JSON.stringify(userSnap.data().starredDebates));
+        }
+      }
+    };
+    loadStarredFromFirebase();
+  }, [user]);
 
   const fetchDebates = async () => {
     try {
@@ -341,6 +362,24 @@ const CommunityRankings: React.FC = () => {
     if (value <= 0.3) return 'Neutral';
     if (value <= 0.8) return 'For';
     return 'Strongly For';
+  };
+
+  const toggleStarDebate = async (debateId: string) => {
+    setStarredDebates(prev => {
+      let updated;
+      if (prev.includes(debateId)) {
+        updated = prev.filter(id => id !== debateId);
+      } else {
+        updated = [...prev, debateId];
+      }
+      localStorage.setItem('starredDebates', JSON.stringify(updated));
+      // Sync to Firestore if logged in
+      if (user) {
+        const userRef = doc(db, 'users', user.uid);
+        setDoc(userRef, { starredDebates: updated }, { merge: true });
+      }
+      return updated;
+    });
   };
 
   if (loading) {
@@ -788,6 +827,22 @@ const CommunityRankings: React.FC = () => {
           </div>
         </div>
 
+        {/* Star Filter */}
+        <div className="flex flex-wrap gap-2 mb-4">
+          <button
+            onClick={() => setStarFilter(false)}
+            className={`px-3 py-1 rounded-lg transition-colors ${!starFilter ? 'bg-blue-600 text-white' : 'bg-gray-700/50 text-gray-300 hover:bg-gray-600/50'}`}
+          >
+            All Debates
+          </button>
+          <button
+            onClick={() => setStarFilter(true)}
+            className={`px-3 py-1 rounded-lg transition-colors ${starFilter ? 'bg-blue-600 text-white' : 'bg-gray-700/50 text-gray-300 hover:bg-gray-600/50'}`}
+          >
+            Starred
+          </button>
+        </div>
+
         {/* Loading, Error, or Debate List */}
         <div className="space-y-4">
           {loading ? (
@@ -805,7 +860,7 @@ const CommunityRankings: React.FC = () => {
                 Start a Debate
               </Link>
             </div>
-          ) : debates.length === 0 ? (
+          ) : (starFilter ? debates.filter(d => starredDebates.includes(d.id)) : debates).length === 0 ? (
             <div className="text-center py-12">
               <div className="text-gray-400 mb-4">No debates found for the selected filters.</div>
               <div className="text-blue-400 text-lg font-light">Now is your chance to be the first! 🎉</div>
@@ -818,7 +873,7 @@ const CommunityRankings: React.FC = () => {
             </div>
           ) : (
             <>
-              {debates.map((debate) => (
+              {(starFilter ? debates.filter(d => starredDebates.includes(d.id)) : debates).map((debate) => (
                 <motion.div
                   key={debate.id}
                   className="bg-gray-800/30 rounded-lg p-4 backdrop-blur-sm border border-gray-700/50"
@@ -827,55 +882,48 @@ const CommunityRankings: React.FC = () => {
                 >
                   <div className="flex items-start gap-4">
                     {/* Vote buttons */}
-                    <div className="flex flex-col items-center space-y-2">
-                      <button 
-                        onClick={() => handleVote(debate.id, 'upvote')}
-                        className={`p-2 rounded-lg transition-all transform hover:scale-110 ${
-                          userVotes[debate.id] === 'upvote'
-                            ? 'bg-amber-500 text-white scale-110 shadow-lg shadow-amber-500/20'
-                            : 'bg-gray-700/50 text-gray-400 hover:bg-gray-600/50 hover:text-gray-300'
-                        }`}
-                        title={user ? (userVotes[debate.id] === 'upvote' ? 'Remove Upvote' : 'Upvote') : 'Login to vote'}
-                      >
-                        <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" viewBox="0 0 20 20" fill="currentColor">
-                          <path fillRule="evenodd" d="M3.293 9.707a1 1 0 010-1.414l6-6a1 1 0 011.414 0l6 6a1 1 0 01-1.414 1.414L11 5.414V17a1 1 0 11-2 0V5.414L4.707 9.707a1 1 0 01-1.414 0z" clipRule="evenodd" />
-                        </svg>
-                      </button>
-                      
-                      {/* Vote percentage */}
-                      <span className={`text-sm font-medium ${
-                        getVoteColor(calculateVotePercentage(debate.upvotes || 0, debate.downvotes || 0))
-                      }`}>
-                        {calculateVotePercentage(debate.upvotes || 0, debate.downvotes || 0)}%
-                      </span>
-
-                      <button
-                        onClick={() => handleVote(debate.id, 'downvote')}
-                        className={`p-2 rounded-lg transition-all transform hover:scale-110 ${
-                          userVotes[debate.id] === 'downvote'
-                            ? 'bg-amber-500 text-white scale-110 shadow-lg shadow-amber-500/20'
-                            : 'bg-gray-700/50 text-gray-400 hover:bg-gray-600/50 hover:text-gray-300'
-                        }`}
-                        title={user ? (userVotes[debate.id] === 'downvote' ? 'Remove Downvote' : 'Downvote') : 'Login to vote'}
-                      >
-                        <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" viewBox="0 0 20 20" fill="currentColor">
-                          <path fillRule="evenodd" d="M16.707 10.293a1 1 0 010 1.414l-6 6a1 1 0 01-1.414 0l-6-6a1 1 0 111.414-1.414L9 14.586V3a1 1 0 012 0v11.586l4.293-4.293a1 1 0 011.414 0z" clipRule="evenodd" />
-                        </svg>
-                      </button>
+                    <div className="flex flex-col items-center space-y-2 w-24">
+                      {[
+                        { type: 'for', label: 'For', votes: debate.upvotes || 0, colors: ['#B162C9', '#822E8F'] },
+                        { type: 'interesting', label: 'Interesting', votes: 0, colors: ['#A08BD1', '#A08BD1'] },
+                        { type: 'against', label: 'Against', votes: debate.downvotes || 0, colors: ['#7140D9', '#1e40af'] },
+                      ].map(({ type, label, votes, colors }) => {
+                        const totalVotes = (debate.upvotes || 0) + (debate.downvotes || 0); // + interestingVotes if available
+                        const percent = totalVotes === 0 ? 0 : Math.round((votes / totalVotes) * 100);
+                        const [bright, dark] = colors;
+                        return (
+                          <button
+                            key={type}
+                            className="w-full py-2 rounded-lg font-semibold text-white mb-1 shadow text-center transition-all relative overflow-hidden"
+                            style={{ background: dark }}
+                            // onClick handler can be added here if voting is needed
+                          >
+                            {/* Bright color bar from right to left, width = percent */}
+                            <span
+                              className="absolute top-0 right-0 h-full"
+                              style={{ width: `${percent}%`, background: bright, zIndex: 1, borderRadius: '0.5rem' }}
+                            />
+                            <span className="relative z-10 block text-xs font-bold" style={{ textAlign: 'center' }}>{label}</span>
+                          </button>
+                        );
+                      })}
                     </div>
 
                     {/* Debate content */}
                     <div className="flex-1">
                       <div className="flex items-start justify-between">
                         <h3 className="text-lg font-medium text-white">{debate.topic}</h3>
-                        <div className="flex items-center space-x-4 text-sm text-gray-400">
-                          <span title="Views" className="flex items-center">
-                            <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4 mr-1" viewBox="0 0 20 20" fill="currentColor">
-                              <path d="M10 12a2 2 0 100-4 2 2 0 000 4z" />
-                              <path fillRule="evenodd" d="M.458 10C1.732 5.943 5.522 3 10 3s8.268 2.943 9.542 7c-1.274 4.057-5.064 7-9.542 7S1.732 14.057.458 10zM14 10a4 4 0 11-8 0 4 4 0 018 0z" clipRule="evenodd" />
-                            </svg>
-                            {debate.views || 0}
-                          </span>
+                        <div className="flex items-center space-x-2">
+                          <button
+                            onClick={() => toggleStarDebate(debate.id)}
+                            className="focus:outline-none"
+                            title={starredDebates.includes(debate.id) ? 'Unstar' : 'Star'}
+                          >
+                            <FaStarIcon
+                              className={`h-5 w-5 ${starredDebates.includes(debate.id) ? 'text-yellow-400' : 'text-gray-400'}`}
+                              style={{ filter: starredDebates.includes(debate.id) ? 'drop-shadow(0 0 2px #facc15)' : 'none' }}
+                            />
+                          </button>
                         </div>
                       </div>
 
@@ -944,4 +992,4 @@ const CommunityRankings: React.FC = () => {
   );
 };
 
-export default CommunityRankings; 
+export default CommunityLibrary; 

@@ -237,7 +237,7 @@ const DebateEngine: React.FC = () => {
 
   // Randomly determine initial stances
   const initialStances = useMemo(() => {
-    return Math.random() < 0.5 ? { model1: -1, model2: 1 } : { model1: 1, model2: -1 };
+    return Math.random() < 0.5 ? { model1: -0.6, model2: 0.6 } : { model1: 0.6, model2: -0.6 };
   }, []);
 
   const [settings, setSettings] = useState<DebateSettings>({
@@ -471,26 +471,26 @@ const DebateEngine: React.FC = () => {
   };
 
   const interpolateColor = (value: number): string => {
-    // Define color stops with more vibrant colors
+    // Use an even more blue shade for negative stance
     const colors = {
-      red: [220, 38, 38],    // red-600 - more vibrant red
-      gray: [75, 75, 75],    // neutral gray
-      green: [22, 163, 74]   // green-600 - more vibrant green
+      blue: [30,144,255],    // blue-300 (very bright blue)
+      gray: [75, 75, 75],     // neutral gray
+      purple: [192, 132, 252],    // purple-400 (bright purple)
     };
 
     let r, g, b;
     if (value <= 0) {
-      // Interpolate between red and gray
+      // Interpolate between blue and gray
       const t = (value + 1); // -1 to 0 -> 0 to 1
-      r = colors.red[0] + (colors.gray[0] - colors.red[0]) * t;
-      g = colors.red[1] + (colors.gray[1] - colors.red[1]) * t;
-      b = colors.red[2] + (colors.gray[2] - colors.red[2]) * t;
+      r = colors.blue[0] + (colors.gray[0] - colors.blue[0]) * t;
+      g = colors.blue[1] + (colors.gray[1] - colors.blue[1]) * t;
+      b = colors.blue[2] + (colors.gray[2] - colors.blue[2]) * t;
     } else {
-      // Interpolate between gray and green
+      // Interpolate between gray and purple
       const t = value; // 0 to 1
-      r = colors.gray[0] + (colors.green[0] - colors.gray[0]) * t;
-      g = colors.gray[1] + (colors.green[1] - colors.gray[1]) * t;
-      b = colors.gray[2] + (colors.green[2] - colors.gray[2]) * t;
+      r = colors.gray[0] + (colors.purple[0] - colors.gray[0]) * t;
+      g = colors.gray[1] + (colors.purple[1] - colors.gray[1]) * t;
+      b = colors.gray[2] + (colors.purple[2] - colors.gray[2]) * t;
     }
 
     return `rgb(${Math.round(r)}, ${Math.round(g)}, ${Math.round(b)})`;
@@ -502,12 +502,27 @@ const DebateEngine: React.FC = () => {
 
   const getStanceBackgroundColor = (value: number): string => {
     const color = interpolateColor(value);
-    return color.replace('rgb', 'rgba').replace(')', ', 0.1)');
+    return color.replace('rgb', 'rgba').replace(')', ', 0.2)');
   };
 
   const getInputBackgroundColor = (value: number): string => {
     const color = interpolateColor(value);
     return color.replace('rgb', 'rgba').replace(')', ', 0.3)');
+  };
+
+  const getThumbColor = (value: number): string => {
+    // Get the base color (rgb)
+    const base = interpolateColor(value);
+    // Parse the rgb string
+    const match = base.match(/rgb\\((\\d+), (\\d+), (\\d+)\\)/);
+    if (!match) return base;
+    let [r, g, b] = match.slice(1).map(Number);
+    // Add extra blue, but clamp to 255
+    b = Math.min(b + 40, 255);
+    // Optionally, reduce red/green a bit for more blue effect
+    r = Math.max(r - 10, 0);
+    g = Math.max(g - 10, 0);
+    return `rgba(${r}, ${g}, ${b}, 0.95)`; // nearly opaque for thumb
   };
 
   const toggleGuidance = () => {
@@ -608,7 +623,7 @@ const DebateEngine: React.FC = () => {
             Login Required
           </h3>
           <p className="mb-6">
-            Debating costs a lot, sign in for 2 free debates instantly!
+            sign in for 2 free debate generations instantly!
           </p>
           <Link 
             to="/login"
@@ -699,12 +714,12 @@ const DebateEngine: React.FC = () => {
           </div>
 
           <motion.h1 
-            className="text-4xl md:text-5xl font-bold mb-4 bg-clip-text text-transparent bg-gradient-to-r from-blue-500 via-indigo-500 to-blue-600 relative z-10"
+            className="text-4xl md:text-5xl font-bold mb-8 leading-relaxed pb-2 bg-clip-text text-transparent bg-gradient-to-r from-blue-500 via-indigo-500 to-blue-600 relative z-10"
             initial={{ backgroundPosition: "0% 50%" }}
             animate={{ backgroundPosition: ["0% 50%", "100% 50%"] }}
             transition={{ duration: 20, repeat: Infinity, ease: "linear" }}
           >
-            AI Verbatim
+            Verbatim Engine v1.5
           </motion.h1>
           <motion.p 
             className="text-xl text-gray-400 font-light tracking-wide relative z-10"
@@ -729,7 +744,7 @@ const DebateEngine: React.FC = () => {
               value={settings.topic}
               onChange={handleTopicChange}
                     className="w-full bg-gray-950/50 rounded-lg px-6 py-4 text-lg text-white focus:outline-none focus:ring-2 focus:ring-blue-500/50 focus:bg-gray-900/70 transition-all duration-300 backdrop-blur-sm"
-                    placeholder="Enter a topic to debate..."
+                    placeholder="Enter any debate topic for generation..."
                     whileFocus={{ scale: 1.01 }}
                     transition={{ type: "spring", stiffness: 300, damping: 20 }}
                   />
@@ -761,11 +776,10 @@ const DebateEngine: React.FC = () => {
                     <path
                       strokeLinecap="round"
                       strokeLinejoin="round"
-                      strokeWidth={2}
                       d="M19 9l-7 7-7-7"
                     />
                   </svg>
-                  Advanced Settings
+                  Global Settings
                 </button>
           </div>
 
@@ -822,28 +836,28 @@ const DebateEngine: React.FC = () => {
                     className="rounded-lg p-4 transition-colors duration-300"
                     style={{ backgroundColor: getStanceBackgroundColor(model.stance) }}
                   >
-                    <h3 className="text-xl mb-4 text-white">{modelNum === 1 ? "First Speaker" : "Second Speaker"}</h3>
+                    <h3 className="text-xl mb-4" style={{ color: getStanceColor(model.stance) }}>{modelNum === 1 ? "First Speaker" : "Second Speaker"}</h3>
                     <div className="space-y-4">
                   <div>
-                        <label className="block mb-1 text-gray-300">Argument Stance</label>
+                        <div className="text-base font-semibold mb-2 text-center" style={{ color: getStanceColor(model.stance), fontSize: '1.15rem' }}>
+                          {getStanceLabel(model.stance)}
+                        </div>
                         <div className="flex items-center space-x-2">
-                          <span className="text-red-500 text-sm">Against</span>
-                    <input
-                      type="range"
+                          <input
+                            type="range"
                             min="-1"
-                      max="1"
-                      step="0.1"
+                            max="1"
+                            step="0.1"
                             value={model.stance}
                             onChange={(e) => handleModelSettingChange(modelNum as 1 | 2, 'stance', parseFloat(e.target.value))}
-                            className="w-full h-2 rounded-lg appearance-none cursor-pointer"
-                            style={{
-                              background: `linear-gradient(to right, rgb(220, 38, 38), rgb(75, 75, 75), rgb(22, 163, 74))`,
-                            }}
+                            className="w-full h-2 rounded-lg appearance-none cursor-pointer custom-slider"
+                            style={
+                              ({
+                                background: `linear-gradient(to right, rgba(30, 64, 175, 0.79), rgba(225, 206, 144, 0), rgba(152, 51, 253, 0.66))`,
+                                '--thumb-color': getThumbColor(model.stance),
+                              } as any)
+                            }
                           />
-                          <span className="text-green-500 text-sm">For</span>
-                        </div>
-                        <div className="text-sm mt-1 text-center" style={{ color: getStanceColor(model.stance) }}>
-                          {getStanceLabel(model.stance)}
                         </div>
                       </div>
 
@@ -866,7 +880,7 @@ const DebateEngine: React.FC = () => {
                               d="M19 9l-7 7-7-7"
                             />
                           </svg>
-                          Advanced Settings
+                          Settings
                         </button>
                       </div>
 
