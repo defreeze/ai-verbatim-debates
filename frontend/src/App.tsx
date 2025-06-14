@@ -4,12 +4,12 @@ import { AuthProvider } from './hooks/useAuth';
 import Navigation from './components/Navigation';
 import DebateEngine from './components/DebateEngine';
 import Login from './components/Login';
-import About from './components/About';
+import About from './pages/About';
 import History from './components/History';
 import Account from './components/Account';
 import CommunityHub from './components/CommunityHub';
 import { useAuth } from './hooks/useAuth';
-import CommunityRankings from './components/CommunityRankings';
+import CommunityLibrary from './components/CommunityRankings';
 
 // Protected Route component
 const ProtectedRoute: React.FC<{ children: React.ReactNode }> = ({ children }) => {
@@ -34,7 +34,7 @@ const App: React.FC = () => {
               </ProtectedRoute>
             } />
             <Route path="/community/*" element={<CommunityHub />}>
-              <Route path="ranking" element={<CommunityRankings />} />
+              <Route path="ranking" element={<CommunityLibrary />} />
               <Route path="history" element={<Navigate to="/community/history" replace />} />
             </Route>
             <Route path="/about" element={<About />} />

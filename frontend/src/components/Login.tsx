@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../hooks/useAuth';
-import { createUserWithEmailAndPassword } from 'firebase/auth';
+import { createUserWithEmailAndPassword, signInWithEmailAndPassword } from 'firebase/auth';
 import { auth } from '../config/firebase';
 
 const Login: React.FC = () => {
@@ -26,8 +26,10 @@ const Login: React.FC = () => {
 
     try {
       if (isSignUp) {
-        await createUserWithEmailAndPassword(auth, email, password);
+        // Create new user
+        const userCredential = await createUserWithEmailAndPassword(auth, email, password);
         // The auth state will automatically update through the auth listener
+        // which will trigger createUserDocument and initialize debate usage
       } else {
         await signInWithEmail(email, password);
       }

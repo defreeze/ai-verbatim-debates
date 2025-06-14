@@ -9,4 +9,45 @@ body {
     sans-serif;
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
+}
+
+.custom-slider::-webkit-slider-thumb {
+  -webkit-appearance: none;
+  appearance: none;
+  width: 24px;
+  height: 24px;
+  border-radius: 50%;
+  background: var(--thumb-color, #3b82f6);
+  /* border: 2px solid #fff; */
+  box-shadow: 0 2px 6px rgba(0,0,0,0.15);
+  transition: background 0.2s;
+  margin-top: -8px; /* Center thumb on 8px track */
+}
+.custom-slider::-moz-range-thumb {
+  width: 24px;
+  height: 24px;
+  border-radius: 50%;
+  background: var(--thumb-color, #3b82f6);
+  /* border: 2px solid #fff; */
+  box-shadow: 0 2px 6px rgba(0,0,0,0.15);
+  transition: background 0.2s;
+}
+.custom-slider::-ms-thumb {
+  width: 24px;
+  height: 24px;
+  border-radius: 50%;
+  background: var(--thumb-color, #3b82f6);
+  /* border: 2px solid #fff; */
+  box-shadow: 0 2px 6px rgba(0,0,0,0.15);
+  transition: background 0.2s;
+}
+.custom-slider:focus {
+  outline: none;
+}
+.custom-slider::-webkit-slider-thumb:hover {
+  filter: brightness(1.1);
+}
+.custom-slider::-webkit-slider-runnable-track {
+  height: 8px;
+  border-radius: 8px;
 } 

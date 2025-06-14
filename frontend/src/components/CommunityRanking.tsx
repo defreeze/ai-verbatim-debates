@@ -46,7 +46,7 @@ const mockDebates: DebatePost[] = [
   // Add more mock debates as needed
 ];
 
-const CommunityRanking: React.FC = () => {
+const CommunityLibrary: React.FC = () => {
   const [selectedCategory, setSelectedCategory] = useState('All');
   const [sortBy, setSortBy] = useState<'popular' | 'recent' | 'controversial'>('popular');
 
@@ -196,4 +196,4 @@ const CommunityRanking: React.FC = () => {
   );
 };
 
-export default CommunityRanking; 
+export default CommunityLibrary; 

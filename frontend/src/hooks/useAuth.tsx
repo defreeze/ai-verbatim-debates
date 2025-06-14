@@ -8,7 +8,8 @@ import {
   signOut as firebaseSignOut 
 } from 'firebase/auth';
 import { auth, db } from '../config/firebase';
-import { doc, getDoc, setDoc } from 'firebase/firestore';
+import { doc, getDoc, setDoc, Timestamp } from 'firebase/firestore';
+import { getDebateUsage } from '../services/debateUsage';
 
 // Extend the User type to include our custom properties
 export interface User extends FirebaseUser {
@@ -70,13 +71,36 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
 
   // Helper function to create/update user document
   const createUserDocument = async (user: FirebaseUser) => {
-    const userRef = doc(db, 'users', user.uid);
-    await setDoc(userRef, {
-      email: user.email,
-      displayName: user.displayName,
-      photoURL: user.photoURL,
-      isPro: false // Default to free tier
-    }, { merge: true });
+    try {
+      // Check if user document already exists
+      const userRef = doc(db, 'users', user.uid);
+      const userDoc = await getDoc(userRef);
+      
+      if (!userDoc.exists()) {
+        // This is a new user, create their document
+        await setDoc(userRef, {
+          email: user.email,
+          displayName: user.displayName,
+          photoURL: user.photoURL,
+          isPro: false, // Default to free tier
+          createdAt: Timestamp.now()
+        });
+
+        // Initialize debate usage for new user with 2 free debates
+        await getDebateUsage(user.uid, user.email);
+      } else {
+        // Update existing user document
+        await setDoc(userRef, {
+          email: user.email,
+          displayName: user.displayName,
+          photoURL: user.photoURL,
+          updatedAt: Timestamp.now()
+        }, { merge: true });
+      }
+    } catch (error) {
+      console.error('Error creating user document:', error);
+      throw error;
+    }
   };
 
   const signInWithGoogle = async () => {
