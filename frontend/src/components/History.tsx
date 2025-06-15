@@ -20,7 +20,7 @@ const History: React.FC = () => {
             animate={{ backgroundPosition: ["0% 50%", "100% 50%"] }}
             transition={{ duration: 20, repeat: Infinity, ease: "linear" }}
           >
-            Debate History
+            Personal Library
           </motion.h1>
           <motion.p 
             className="text-xl text-gray-400 font-light tracking-wide"

@@ -3,10 +3,26 @@ import { Link, useLocation } from 'react-router-dom';
 import { useAuth } from '../hooks/useAuth';
 
 const Navigation: React.FC = () => {
-  const { user, signOut } = useAuth();
+  const { user, signOut, loading } = useAuth();
   const location = useLocation();
   const [isOpen, setIsOpen] = useState(false);
   const menuRef = useRef<HTMLDivElement>(null);
+
+  // Optimistic user state based on localStorage
+  const [optimisticUser, setOptimisticUser] = useState(() => {
+    return localStorage.getItem('lastUserLoggedIn') === 'true';
+  });
+
+  // Update localStorage when user logs in or out
+  useEffect(() => {
+    if (!loading) {
+      localStorage.setItem('lastUserLoggedIn', user ? 'true' : 'false');
+      setOptimisticUser(!!user);
+    }
+  }, [loading, user]);
+
+  // Use optimisticUser for initial render, real user after loading
+  const showUser = loading ? optimisticUser : !!user;
 
   // Close menu when clicking outside
   useEffect(() => {
@@ -35,8 +51,8 @@ const Navigation: React.FC = () => {
           <div className="flex justify-between h-16">
             <div className="flex">
               <div className="flex-shrink-0 flex items-center">
-                <Link to="/" className="text-2xl font-bold text-white">
-                  AI Verbatim
+                <Link to="/" className="flex items-center h-14">
+                  <img src="/android-chrome-512x512.png" alt="AI Verbatim Logo" className="h-10 w-10 object-contain" style={{ maxHeight: '2.5rem', opacity: 0.8 }} />
                 </Link>
               </div>
               <div className="hidden sm:ml-6 sm:flex sm:space-x-8">
@@ -75,7 +91,7 @@ const Navigation: React.FC = () => {
             
             {/* Desktop menu */}
             <div className="hidden sm:ml-6 sm:flex sm:items-center">
-              {user ? (
+              {showUser ? (
                 <div className="flex items-center space-x-4">
                   <Link
                     to="/account"
@@ -181,7 +197,7 @@ const Navigation: React.FC = () => {
                       </Link>
                     </div>
                     <div className="py-1 bg-gray-800">
-                      {user ? (
+                      {showUser ? (
                         <Link
                           to="/account"
                           className="block px-4 py-2 text-sm text-gray-300 hover:bg-gray-700 hover:text-white relative z-50"

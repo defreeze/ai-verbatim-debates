@@ -119,7 +119,11 @@ const Account: React.FC = () => {
                     {lastDebateDate}
                   </div>
                 </div>
-                <div className="bg-gray-800/50 rounded-lg p-4">
+                <div
+                  className="bg-gray-800/50 rounded-lg p-4 cursor-pointer hover:bg-blue-800/40 transition-colors"
+                  onClick={() => navigate('/community/history')}
+                  title="View your debate history"
+                >
                   <div className="text-sm font-medium text-gray-400">Total Debates Generated</div>
                   <div className="mt-1 text-2xl font-semibold text-white">
                     {debateUsage?.totalDebates || 0}
