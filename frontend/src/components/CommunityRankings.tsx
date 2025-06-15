@@ -434,8 +434,8 @@ const CommunityLibrary: React.FC = () => {
 
   if (loading) {
     return (
-      <div className="min-h-screen bg-gray-900 p-6">
-        <div className="max-w-7xl mx-auto space-y-8">
+      <div className="min-h-screen bg-white flex flex-col items-center py-12 px-4 sm:px-6 lg:px-8">
+        <div className="max-w-4xl w-full bg-surface border border-neutral rounded-2xl p-8 shadow-xl">
           {/* Filters */}
           <div className="bg-gray-800/30 rounded-lg p-4 backdrop-blur-sm border border-gray-700/50">
             <div className="flex flex-col sm:flex-row gap-6">
@@ -576,8 +576,8 @@ const CommunityLibrary: React.FC = () => {
 
   if (error) {
     return (
-      <div className="min-h-screen bg-gray-900 p-6">
-        <div className="max-w-7xl mx-auto space-y-8">
+      <div className="min-h-screen bg-white flex flex-col items-center py-12 px-4 sm:px-6 lg:px-8">
+        <div className="max-w-4xl w-full bg-surface border border-neutral rounded-2xl p-8 shadow-xl">
           {/* Keep the filters visible during error */}
           <div className="bg-gray-800/30 rounded-lg p-4 backdrop-blur-sm border border-gray-700/50">
             <div className="flex flex-col sm:flex-row gap-6">
@@ -728,8 +728,8 @@ const CommunityLibrary: React.FC = () => {
   ).sort();
 
   return (
-    <div className="min-h-screen bg-gray-900 p-6">
-      <div className="max-w-7xl mx-auto space-y-8">
+    <div className="min-h-screen bg-white flex flex-col items-center py-12 px-4 sm:px-6 lg:px-8">
+      <div className="max-w-4xl w-full bg-surface border border-neutral rounded-2xl p-8 shadow-xl">
         {/* Login Modal */}
         <Modal isOpen={showLoginModal} onClose={() => setShowLoginModal(false)}>
           <div className="text-center text-white">

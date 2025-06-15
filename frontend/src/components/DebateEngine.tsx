@@ -615,607 +615,611 @@ const DebateEngine: React.FC = () => {
   };
 
   return (
-    <div className="min-h-screen bg-gray-900 text-white p-4 sm:p-6 lg:p-8">
-      {/* Login Modal */}
-      <Modal isOpen={showLoginModal} onClose={() => setShowLoginModal(false)}>
-        <div className="text-center text-white">
-          <h3 className="text-xl font-semibold mb-3">
-            Login Required
-          </h3>
-          <p className="mb-6">
-            sign in for 2 free debate generations instantly!
-          </p>
-          <Link 
-            to="/login"
-            className="inline-block bg-white text-blue-500 font-semibold px-6 py-2 rounded-lg hover:bg-blue-50 hover:text-blue-700 transition-colors"
-          >
-            Sign In
-          </Link>
-        </div>
-      </Modal>
-
-      {/* Floating Topic Header */}
-      {showFloatingTopic && debate.length > 0 && (
-        <motion.div
-          initial={{ y: -100, opacity: 0 }}
-          animate={{ y: 0, opacity: 1 }}
-          exit={{ y: -100, opacity: 0 }}
-          className="fixed top-0 left-0 right-0 z-50 bg-gray-900/95 backdrop-blur-sm border-b border-gray-700/50 shadow-lg"
-        >
-          <div className="container mx-auto px-4 py-3">
-            <h2 className="text-xl text-center font-light tracking-wide bg-gradient-to-r from-gray-400 via-gray-300 to-gray-400 bg-clip-text text-transparent">
-              {settings.topic}
-        </h2>
+    <div className="min-h-screen bg-white flex flex-col items-center py-12 px-4 sm:px-6 lg:px-8">
+      <div className="max-w-4xl w-full bg-surface border border-neutral rounded-2xl p-8 shadow-xl">
+        {/* Login Modal */}
+        <Modal isOpen={showLoginModal} onClose={() => setShowLoginModal(false)}>
+          <div className="text-center text-white">
+            <h3 className="text-xl font-semibold mb-3">
+              Login Required
+            </h3>
+            <p className="mb-6">
+              sign in for 2 free debate generations instantly!
+            </p>
+            <Link 
+              to="/login"
+              className="inline-block bg-white text-blue-500 font-semibold px-6 py-2 rounded-lg hover:bg-blue-50 hover:text-blue-700 transition-colors"
+            >
+              Sign In
+            </Link>
           </div>
-        </motion.div>
-      )}
+        </Modal>
 
-      <div className="max-w-6xl mx-auto">
-        <motion.div
-          initial={{ opacity: 0, y: -20 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.7, ease: "easeOut" }}
-          className="text-center mb-12 relative overflow-hidden"
-        >
-                     {/* Background scrolling topics */}
-           <div className="absolute inset-0 opacity-[0.15] overflow-hidden pointer-events-none">
-            <div className="grid grid-cols-3 gap-8 h-full">
-              {/* Left column - slower */}
-              <motion.div
-                initial={{ y: 0 }}
-                animate={{ y: "-50%" }}
-                transition={{
-                  duration: 25,
-                  repeat: Infinity,
-                  ease: "linear",
-                  repeatType: "loop"
-                }}
-                className="whitespace-pre-line text-right text-lg font-light"
-              >
-                {debateTopics.slice(0, 10).map(topic => 
-                  topic.length > 30 ? topic.substring(0, 30) + "..." : topic
-                ).join("\n\n")}
-              </motion.div>
-
-              {/* Middle column - faster */}
-              <motion.div
-                initial={{ y: "-25%" }}
-                animate={{ y: "-75%" }}
-                transition={{
-                  duration: 20,
-                  repeat: Infinity,
-                  ease: "linear",
-                  repeatType: "loop"
-                }}
-                className="whitespace-pre-line text-center text-lg font-light"
-              >
-                {debateTopics.slice(10, 20).map(topic => 
-                  topic.length > 40 ? topic.substring(0, 40) + "..." : topic
-                ).join("\n\n")}
-              </motion.div>
-
-              {/* Right column - slowest */}
-              <motion.div
-                initial={{ y: "-15%" }}
-                animate={{ y: "-65%" }}
-                transition={{
-                  duration: 30,
-                  repeat: Infinity,
-                  ease: "linear",
-                  repeatType: "loop"
-                }}
-                className="whitespace-pre-line text-left text-lg font-light"
-              >
-                {debateTopics.slice(20, 30).map(topic => 
-                  topic.length > 30 ? topic.substring(0, 30) + "..." : topic
-                ).join("\n\n")}
-              </motion.div>
+        {/* Floating Topic Header */}
+        {showFloatingTopic && debate.length > 0 && (
+          <motion.div
+            initial={{ y: -100, opacity: 0 }}
+            animate={{ y: 0, opacity: 1 }}
+            exit={{ y: -100, opacity: 0 }}
+            className="fixed top-0 left-0 right-0 z-50 bg-gray-900/95 backdrop-blur-sm border-b border-gray-700/50 shadow-lg"
+          >
+            <div className="container mx-auto px-4 py-3">
+              <h2 className="text-xl text-center font-light tracking-wide bg-gradient-to-r from-gray-400 via-gray-300 to-gray-400 bg-clip-text text-transparent">
+                {settings.topic}
+              </h2>
             </div>
-          </div>
+          </motion.div>
+        )}
 
-          <motion.h1 
-            className="text-4xl md:text-5xl font-bold mb-8 leading-relaxed pb-2 bg-clip-text text-transparent bg-gradient-to-r from-blue-500 via-indigo-500 to-blue-600 relative z-10"
-            initial={{ backgroundPosition: "0% 50%" }}
-            animate={{ backgroundPosition: ["0% 50%", "100% 50%"] }}
-            transition={{ duration: 20, repeat: Infinity, ease: "linear" }}
+        <div className="max-w-6xl mx-auto">
+          <motion.div
+            initial={{ opacity: 0, y: -20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.7, ease: "easeOut" }}
+            className="text-center mb-12 relative overflow-hidden"
           >
-            Verbatim Engine v1.5
-          </motion.h1>
-          <motion.p 
-            className="text-xl text-gray-400 font-light tracking-wide relative z-10"
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            transition={{ delay: 0.3, duration: 0.7 }}
-          >
-            The Frontier Destination of AI Debates
-          </motion.p>
-        </motion.div>
-
-        <div className="bg-blue-900/30 backdrop-blur-sm border border-blue-700/20 rounded-lg p-6 mb-6 shadow-xl">
-          <div className="space-y-6">
-            <div className="space-y-4">
-              <div className="grid grid-cols-[1fr,auto] gap-4 py-4">
-                <div className="relative">
-                  <label className="block text-lg font-medium mb-2 bg-clip-text text-transparent bg-gradient-to-r from-blue-400 to-indigo-500">
-                  Debate topic
-                  </label>
-                  <motion.input
-              type="text"
-              value={settings.topic}
-              onChange={handleTopicChange}
-                    className="w-full bg-gray-950/50 rounded-lg px-6 py-4 text-lg text-white focus:outline-none focus:ring-2 focus:ring-blue-500/50 focus:bg-gray-900/70 transition-all duration-300 backdrop-blur-sm"
-                    placeholder="Enter any debate topic for generation..."
-                    whileFocus={{ scale: 1.01 }}
-                    transition={{ type: "spring", stiffness: 300, damping: 20 }}
-                  />
-                </div>
-                <motion.button
-                  onClick={handleRandomTopic}
-                  className="bg-blue-600 hover:bg-blue-700 w-[60px] h-[60px] rounded-lg text-white flex items-center justify-center transition-colors self-end"
-                  whileHover={{ scale: 1.02 }}
-                  whileTap={{ scale: 0.98 }}
+            {/* Background scrolling topics */}
+            <div className="absolute inset-0 opacity-[0.15] overflow-hidden pointer-events-none">
+              <div className="grid grid-cols-3 gap-8 h-full">
+                {/* Left column - slower */}
+                <motion.div
+                  initial={{ y: 0 }}
+                  animate={{ y: "-50%" }}
+                  transition={{
+                    duration: 25,
+                    repeat: Infinity,
+                    ease: "linear",
+                    repeatType: "loop"
+                  }}
+                  className="whitespace-pre-line text-right text-lg font-light"
                 >
-                  <svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6" viewBox="0 0 20 20" fill="currentColor">
-                    <path fillRule="evenodd" d="M4 2a1 1 0 011 1v2.101a7.002 7.002 0 0111.601 2.566 1 1 0 11-1.885.666A5.002 5.002 0 005.999 7H9a1 1 0 010 2H4a1 1 0 01-1-1V3a1 1 0 011-1zm.008 9.057a1 1 0 011.276.61A5.002 5.002 0 0014.001 13H11a1 1 0 110-2h5a1 1 0 011 1v5a1 1 0 11-2 0v-2.101a7.002 7.002 0 01-11.601-2.566 1 1 0 01.61-1.276z" clipRule="evenodd" />
-                  </svg>
-                </motion.button>
+                  {debateTopics.slice(0, 10).map(topic => 
+                    topic.length > 30 ? topic.substring(0, 30) + "..." : topic
+                  ).join("\n\n")}
+                </motion.div>
+
+                {/* Middle column - faster */}
+                <motion.div
+                  initial={{ y: "-25%" }}
+                  animate={{ y: "-75%" }}
+                  transition={{
+                    duration: 20,
+                    repeat: Infinity,
+                    ease: "linear",
+                    repeatType: "loop"
+                  }}
+                  className="whitespace-pre-line text-center text-lg font-light"
+                >
+                  {debateTopics.slice(10, 20).map(topic => 
+                    topic.length > 40 ? topic.substring(0, 40) + "..." : topic
+                  ).join("\n\n")}
+                </motion.div>
+
+                {/* Right column - slowest */}
+                <motion.div
+                  initial={{ y: "-15%" }}
+                  animate={{ y: "-65%" }}
+                  transition={{
+                    duration: 30,
+                    repeat: Infinity,
+                    ease: "linear",
+                    repeatType: "loop"
+                  }}
+                  className="whitespace-pre-line text-left text-lg font-light"
+                >
+                  {debateTopics.slice(20, 30).map(topic => 
+                    topic.length > 30 ? topic.substring(0, 30) + "..." : topic
+                  ).join("\n\n")}
+                </motion.div>
+              </div>
+            </div>
+
+            <motion.h1 
+              className="text-4xl md:text-5xl font-bold mb-8 leading-relaxed pb-2 bg-clip-text text-transparent bg-gradient-to-r from-blue-500 via-indigo-500 to-blue-600 relative z-10"
+              initial={{ backgroundPosition: "0% 50%" }}
+              animate={{ backgroundPosition: ["0% 50%", "100% 50%"] }}
+              transition={{ duration: 20, repeat: Infinity, ease: "linear" }}
+            >
+              Verbatim Engine v1.5
+            </motion.h1>
+            <motion.p 
+              className="text-xl text-gray-400 font-light tracking-wide relative z-10"
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              transition={{ delay: 0.3, duration: 0.7 }}
+            >
+              The Frontier Destination of AI Debates
+            </motion.p>
+          </motion.div>
+
+          <div className="bg-blue-900/30 backdrop-blur-sm border border-blue-700/20 rounded-lg p-6 mb-6 shadow-xl">
+            <div className="space-y-6">
+              <div className="space-y-4">
+                <div className="grid grid-cols-[1fr,auto] gap-4 py-4">
+                  <div className="relative">
+                    <label className="block text-lg font-medium mb-2 bg-clip-text text-transparent bg-gradient-to-r from-blue-400 to-indigo-500">
+                    Debate topic
+                    </label>
+                    <motion.input
+                      type="text"
+                      value={settings.topic}
+                      onChange={handleTopicChange}
+                      className="w-full bg-gray-950/50 rounded-lg px-6 py-4 text-lg text-white focus:outline-none focus:ring-2 focus:ring-blue-500/50 focus:bg-gray-900/70 transition-all duration-300 backdrop-blur-sm"
+                      placeholder="Enter any debate topic for generation..."
+                      whileFocus={{ scale: 1.01 }}
+                      transition={{ type: "spring", stiffness: 300, damping: 20 }}
+                    />
+                  </div>
+                  <motion.button
+                    onClick={handleRandomTopic}
+                    className="bg-blue-600 hover:bg-blue-700 w-[60px] h-[60px] rounded-lg text-white flex items-center justify-center transition-colors self-end"
+                    whileHover={{ scale: 1.02 }}
+                    whileTap={{ scale: 0.98 }}
+                  >
+                    <svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6" viewBox="0 0 20 20" fill="currentColor">
+                      <path fillRule="evenodd" d="M4 2a1 1 0 011 1v2.101a7.002 7.002 0 0111.601 2.566 1 1 0 11-1.885.666A5.002 5.002 0 005.999 7H9a1 1 0 010 2H4a1 1 0 01-1-1V3a1 1 0 011-1zm.008 9.057a1 1 0 011.276.61A5.002 5.002 0 0014.001 13H11a1 1 0 110-2h5a1 1 0 011 1v5a1 1 0 11-2 0v-2.101a7.002 7.002 0 01-11.601-2.566 1 1 0 01.61-1.276z" clipRule="evenodd" />
+                    </svg>
+                  </motion.button>
+                </div>
+
+                <div className="flex justify-between items-center mt-6">
+                  <button
+                    onClick={() => toggleGeneralSettings()}
+                    className="text-gray-300 hover:text-white flex items-center gap-2"
+                  >
+                    <svg
+                      xmlns="http://www.w3.org/2000/svg"
+                      className={`h-4 w-4 transition-transform ${showGeneralSettings ? 'rotate-180' : ''}`}
+                      fill="none"
+                      viewBox="0 0 24 24"
+                      stroke="currentColor"
+                    >
+                      <path
+                        strokeLinecap="round"
+                        strokeLinejoin="round"
+                        d="M19 9l-7 7-7-7"
+                      />
+                    </svg>
+                    Global Settings
+                  </button>
+                </div>
+
+                {showGeneralSettings && (
+                  <div className="mt-4 space-y-6  rounded-lg p-4">
+                    <div>
+                      <label className="block mb-2 text-gray-300">Debate Format</label>
+                      <select
+                        value={settings.debateStyle}
+                        onChange={(e) => setSettings({ ...settings, debateStyle: e.target.value })}
+                        className="w-1/2 bg-gray-900 rounded px-3 py-2 text-white"
+                      >
+                        {debateStyles.map((style) => (
+                          <option key={style.value} value={style.value} className="text-white bg-gray-800">
+                            {style.label}
+                          </option>
+                        ))}
+                      </select>
+                      <p className="text-sm text-gray-400 mt-1">
+                        {debateStyles.find(style => style.value === settings.debateStyle)?.description}
+                      </p>
+                    </div>
+                    
+                    <div className="flex items-center gap-3 group relative">
+                      <span className="text-white">Moderator</span>
+                      <button
+                        onClick={() => setSettings({ ...settings, moderatorEnabled: !settings.moderatorEnabled })}
+                        className={`relative inline-flex items-center h-6 rounded-full w-11 transition-colors focus:outline-none ${
+                          settings.moderatorEnabled ? 'bg-blue-600' : 'bg-gray-600'
+                        }`}
+                      >
+                        <span
+                          className={`inline-block w-4 h-4 transform transition-transform bg-white rounded-full ${
+                            settings.moderatorEnabled ? 'translate-x-6' : 'translate-x-1'
+                          }`}
+                        />
+                      </button>
+                      <div className="absolute bottom-full left-0 hidden group-hover:block w-64 bg-gray-900 text-sm text-gray-300 p-2 rounded shadow-lg z-50 mb-2">
+                        When enabled, an AI moderator will guide the debate, ensure fair play, and provide structured transitions between arguments
+                      </div>
+                    </div>
+                  </div>
+                )}
               </div>
 
-              <div className="flex justify-between items-center mt-6">
-                <button
-                  onClick={() => toggleGeneralSettings()}
-                  className="text-gray-300 hover:text-white flex items-center gap-2"
-                >
-                  <svg
-                    xmlns="http://www.w3.org/2000/svg"
-                    className={`h-4 w-4 transition-transform ${showGeneralSettings ? 'rotate-180' : ''}`}
-                    fill="none"
-                    viewBox="0 0 24 24"
-                    stroke="currentColor"
-                  >
-                    <path
-                      strokeLinecap="round"
-                      strokeLinejoin="round"
-                      d="M19 9l-7 7-7-7"
-                    />
-                  </svg>
-                  Global Settings
-                </button>
+              <div className="border-t border-gray-700/50 my-6"></div>
+
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                {[1, 2].map((modelNum) => {
+                  const model = getModelSettings(modelNum);
+                  return (
+                    <div 
+                      key={modelNum} 
+                      className="rounded-lg p-4 transition-colors duration-300"
+                      style={{ backgroundColor: getStanceBackgroundColor(model.stance) }}
+                    >
+                      <h3 className="text-xl mb-4 text-white">{modelNum === 1 ? "First Speaker" : "Second Speaker"}</h3>
+                      <div className="space-y-4">
+                        <div>
+                              <div className="text-lg font-semibold mb-2 text-center" style={{ color: getStanceColor(model.stance), fontSize: '1.35rem' }}>
+                                {getStanceLabel(model.stance)}
+                              </div>
+                              <div className="flex items-center space-x-2">
+                                <input
+                                  type="range"
+                                  min="-1"
+                                  max="1"
+                                  step="0.1"
+                                  value={model.stance}
+                                  onChange={(e) => handleModelSettingChange(modelNum as 1 | 2, 'stance', parseFloat(e.target.value))}
+                                  className="w-full h-2 rounded-lg appearance-none cursor-pointer custom-slider"
+                                  style={
+                                    ({
+                                      background: `linear-gradient(to right, rgba(30, 64, 175, 0.79), rgba(225, 206, 144, 0), rgba(152, 51, 253, 0.66))`,
+                                      '--thumb-color': getThumbColor(model.stance),
+                                    } as any)
+                                  }
+                                />
+                              </div>
+                            </div>
+
+                            <div className="flex justify-between items-center mt-4">
+                              <button
+                                onClick={() => toggleGuidance()}
+                                className="text-gray-300 hover:text-white flex items-center gap-2 text-sm"
+                              >
+                                <svg
+                                  xmlns="http://www.w3.org/2000/svg"
+                                  className={`h-4 w-4 transition-transform ${showAdvancedSettings ? 'rotate-180' : ''}`}
+                                  fill="none"
+                                  viewBox="0 0 24 24"
+                                  stroke="currentColor"
+                                >
+                                  <path
+                                    strokeLinecap="round"
+                                    strokeLinejoin="round"
+                                    strokeWidth={2}
+                                    d="M19 9l-7 7-7-7"
+                                  />
+                                </svg>
+                                Settings
+                              </button>
+                            </div>
+
+                            {showAdvancedSettings && (
+                              <div className="space-y-4 mt-4 pt-4 border-t border-gray-700/50">
+                                <div>
+                                  <label className="block mb-1 text-gray-300">Model</label>
+                                  <select
+                                    value={model.name}
+                                    onChange={(e) => handleModelSettingChange(modelNum as 1 | 2, 'name', e.target.value)}
+                                    className="w-full rounded px-3 py-2 text-white transition-colors duration-300"
+                                    style={{ backgroundColor: getInputBackgroundColor(model.stance) }}
+                                  >
+                                    <option value="gpt-4" className="text-white bg-gray-800">GPT-4</option>
+                                    <option value="gpt-3.5-turbo" className="text-white bg-gray-800">GPT-3.5 Turbo</option>
+                                  </select>
+                                </div>
+
+                                <div>
+                                  <label className="block mb-1 text-gray-300">Rhetoric Style</label>
+                                  <select
+                                    value={model.rhetoricStyle}
+                                    onChange={(e) => handleModelSettingChange(modelNum as 1 | 2, 'rhetoricStyle', e.target.value)}
+                                    className="w-full rounded px-3 py-2 text-white transition-colors duration-300"
+                                    style={{ backgroundColor: getInputBackgroundColor(model.stance) }}
+                                  >
+                                    {rhetoricStyles.map((style) => (
+                                      <option key={style.value} value={style.value} className="text-white bg-gray-800">
+                                        {style.label}
+                                      </option>
+                                    ))}
+                                  </select>
+                                  <div className="text-sm text-gray-400 mt-1">
+                                    {rhetoricStyles.find(style => style.value === model.rhetoricStyle)?.description}
+                                  </div>
+                                </div>
+
+                                <div>
+                                  <label className="block mb-1 text-gray-300">Personality & Behavior Hints</label>
+                                  <textarea
+                                    value={model.systemPrompt}
+                                    onChange={(e) => handleModelSettingChange(modelNum as 1 | 2, 'systemPrompt', e.target.value)}
+                                    className="w-full rounded px-3 py-2 h-24 text-white transition-colors duration-300"
+                                    style={{ 
+                                      backgroundColor: getInputBackgroundColor(model.stance).replace('0.3', '0.15')
+                                    }}
+                                    placeholder="Add details to adjust model behaviour such as 'Debate like the Pope' or 'talk from the perspective of a cat'..."
+                                  />
+                                </div>
+                              </div>
+                            )}
+                          </div>
+                        </div>
+                      );
+                    })}
+                  </div>
+                )}
+              </div>
+            </div>
           </div>
 
-              {showGeneralSettings && (
-                <div className="mt-4 space-y-6  rounded-lg p-4">
-                  <div>
-                    <label className="block mb-2 text-gray-300">Debate Format</label>
-                    <select
-                      value={settings.debateStyle}
-                      onChange={(e) => setSettings({ ...settings, debateStyle: e.target.value })}
-                      className="w-1/2 bg-gray-900 rounded px-3 py-2 text-white"
-                    >
-                      {debateStyles.map((style) => (
-                        <option key={style.value} value={style.value} className="text-white bg-gray-800">
-                          {style.label}
-                        </option>
-                      ))}
-                    </select>
-                    <p className="text-sm text-gray-400 mt-1">
-                      {debateStyles.find(style => style.value === settings.debateStyle)?.description}
-                    </p>
-                  </div>
-                  
-                  <div className="flex items-center gap-3 group relative">
-                    <span className="text-white">Moderator</span>
-                    <button
-                      onClick={() => setSettings({ ...settings, moderatorEnabled: !settings.moderatorEnabled })}
-                      className={`relative inline-flex items-center h-6 rounded-full w-11 transition-colors focus:outline-none ${
-                        settings.moderatorEnabled ? 'bg-blue-600' : 'bg-gray-600'
-                      }`}
-                    >
-                      <span
-                        className={`inline-block w-4 h-4 transform transition-transform bg-white rounded-full ${
-                          settings.moderatorEnabled ? 'translate-x-6' : 'translate-x-1'
-                        }`}
-                      />
-                    </button>
-                    <div className="absolute bottom-full left-0 hidden group-hover:block w-64 bg-gray-900 text-sm text-gray-300 p-2 rounded shadow-lg z-50 mb-2">
-                      When enabled, an AI moderator will guide the debate, ensure fair play, and provide structured transitions between arguments
-                    </div>
-                  </div>
-                </div>
-              )}
+          <div className="text-center mt-8">
+              <button
+                onClick={startDebate}
+                disabled={!!(isDebating || !settings.topic)}
+                className="bg-blue-600 hover:bg-blue-700 disabled:bg-gray-600 px-8 py-3 rounded-lg font-semibold transition-colors text-white"
+              >
+                {isDebating ? 'Debate in Progress...' : 'Start Debate'}
+              </button>
             </div>
 
-            <div className="border-t border-gray-700/50 my-6"></div>
+            {user && showNoDebatesMessage && freeDebatesRemaining === 0 && (
+            <motion.div 
+              initial={{ opacity: 0, y: -10 }}
+              animate={{ opacity: 1, y: 0 }}
+              className="mt-3 text-blue-400 text-sm max-w-md mx-auto"
+            >
+              No free debates left. Next free debate within 7 days or consider supporting us by purchasing a PRO account 👑
+            </motion.div>
+          )}
 
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-              {[1, 2].map((modelNum) => {
-                const model = getModelSettings(modelNum);
+            {debate.length > 0 && (
+            <div className="mt-8 space-y-6">
+              <h2 
+                ref={topicRef}
+                className="text-2xl text-center mb-12 font-light tracking-wide bg-gradient-to-r from-gray-400 via-gray-300 to-gray-400 bg-clip-text text-transparent"
+              >
+                {settings.topic}
+              </h2>
+              
+              {Array.from({ length: Math.ceil(debate.length / 2) }, (_, roundIndex) => {
+                const roundNumber = roundIndex + 1;
+                const firstSpeakerIndex = roundIndex * 2;
+                const secondSpeakerIndex = firstSpeakerIndex + 1;
+                const roundInfo = getRoundTitle(roundNumber);
+                
                 return (
-                  <div 
-                    key={modelNum} 
-                    className="rounded-lg p-4 transition-colors duration-300"
-                    style={{ backgroundColor: getStanceBackgroundColor(model.stance) }}
-                  >
-                    <h3 className="text-xl mb-4 text-white">{modelNum === 1 ? "First Speaker" : "Second Speaker"}</h3>
-                    <div className="space-y-4">
-                  <div>
-                        <div className="text-lg font-semibold mb-2 text-center" style={{ color: getStanceColor(model.stance), fontSize: '1.35rem' }}>
-                          {getStanceLabel(model.stance)}
-                        </div>
-                        <div className="flex items-center space-x-2">
-                          <input
-                            type="range"
-                            min="-1"
-                            max="1"
-                            step="0.1"
-                            value={model.stance}
-                            onChange={(e) => handleModelSettingChange(modelNum as 1 | 2, 'stance', parseFloat(e.target.value))}
-                            className="w-full h-2 rounded-lg appearance-none cursor-pointer custom-slider"
-                            style={
-                              ({
-                                background: `linear-gradient(to right, rgba(30, 64, 175, 0.79), rgba(225, 206, 144, 0), rgba(152, 51, 253, 0.66))`,
-                                '--thumb-color': getThumbColor(model.stance),
-                              } as any)
-                            }
-                          />
-                        </div>
-                      </div>
-
-                      <div className="flex justify-between items-center mt-4">
-                        <button
-                          onClick={() => toggleGuidance()}
-                          className="text-gray-300 hover:text-white flex items-center gap-2 text-sm"
+                  <div key={roundNumber} className="space-y-4">
+                    <div className="mb-6">
+                      <h3 className="text-xl font-semibold text-gray-300 mb-2 border-b border-gray-700/50 pb-2">
+                        {roundInfo.title}
+                      </h3>
+                      <p className="text-sm text-gray-400 italic">
+                        {roundInfo.description}
+                      </p>
+                    </div>
+                    
+                    {debate[firstSpeakerIndex] && (
+                      <motion.div
+                        initial={{ opacity: 0, x: -20 }}
+                        animate={{ opacity: 1, x: 0 }}
+                        transition={{ duration: 0.5 }}
+                        className="flex justify-start"
+                      >
+                        <div 
+                          className="w-3/4 p-6 rounded-lg shadow-xl backdrop-blur-sm"
+                          style={{ 
+                            background: `linear-gradient(135deg, ${getStanceBackgroundColor(settings.model1.stance).replace('0.1', '0.2')}, ${getStanceBackgroundColor(settings.model1.stance).replace('0.1', '0.1')})`,
+                            border: `1px solid ${getStanceBackgroundColor(settings.model1.stance).replace('0.1', '0.3')}`,
+                          }}
                         >
-                          <svg
-                            xmlns="http://www.w3.org/2000/svg"
-                            className={`h-4 w-4 transition-transform ${showAdvancedSettings ? 'rotate-180' : ''}`}
-                            fill="none"
-                            viewBox="0 0 24 24"
-                            stroke="currentColor"
-                          >
-                            <path
-                              strokeLinecap="round"
-                              strokeLinejoin="round"
-                              strokeWidth={2}
-                              d="M19 9l-7 7-7-7"
-                            />
-                          </svg>
-                          Settings
-                        </button>
-                      </div>
-
-                      {showAdvancedSettings && (
-                        <div className="space-y-4 mt-4 pt-4 border-t border-gray-700/50">
-                          <div>
-                            <label className="block mb-1 text-gray-300">Model</label>
-                            <select
-                              value={model.name}
-                              onChange={(e) => handleModelSettingChange(modelNum as 1 | 2, 'name', e.target.value)}
-                              className="w-full rounded px-3 py-2 text-white transition-colors duration-300"
-                              style={{ backgroundColor: getInputBackgroundColor(model.stance) }}
+                          <div className="flex items-center justify-between mb-3">
+                            <div className="text-lg font-semibold" style={{ color: getStanceColor(settings.model1.stance) }}>
+                              First Speaker
+                            </div>
+                            <button
+                              onClick={() => toggleArgumentExpansion(roundIndex, firstSpeakerIndex)}
+                              className="text-gray-400 hover:text-white transition-colors duration-200 flex items-center gap-1"
                             >
-                              <option value="gpt-4" className="text-white bg-gray-800">GPT-4</option>
-                              <option value="gpt-3.5-turbo" className="text-white bg-gray-800">GPT-3.5 Turbo</option>
-                            </select>
+                              {expandedArguments.has(`${roundIndex}-${firstSpeakerIndex}`) ? (
+                                <>
+                                  <span className="text-sm">Show Less</span>
+                                  <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 15l7-7 7 7" />
+                                  </svg>
+                                </>
+                              ) : (
+                                <>
+                                  <span className="text-sm">Show More</span>
+                                  <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
+                                  </svg>
+                                </>
+                              )}
+                            </button>
                           </div>
-
-                          <div>
-                            <label className="block mb-1 text-gray-300">Rhetoric Style</label>
-                            <select
-                              value={model.rhetoricStyle}
-                              onChange={(e) => handleModelSettingChange(modelNum as 1 | 2, 'rhetoricStyle', e.target.value)}
-                              className="w-full rounded px-3 py-2 text-white transition-colors duration-300"
-                              style={{ backgroundColor: getInputBackgroundColor(model.stance) }}
+                          <div className="text-gray-200 leading-relaxed whitespace-pre-wrap">
+                            {expandedArguments.has(`${roundIndex}-${firstSpeakerIndex}`) ? (
+                              debate[firstSpeakerIndex].text
+                            ) : (
+                              <div>
+                                <p className="text-gray-300">{debate[firstSpeakerIndex].summary}</p>
+                              </div>
+                            )}
+                          </div>
+                        </div>
+                      </motion.div>
+                    )}
+                    
+                    {debate[secondSpeakerIndex] && (
+                      <motion.div
+                        initial={{ opacity: 0, x: 20 }}
+                        animate={{ opacity: 1, x: 0 }}
+                        transition={{ duration: 0.5 }}
+                        className="flex justify-end"
+                      >
+                        <div 
+                          className="w-3/4 p-6 rounded-lg shadow-xl backdrop-blur-sm"
+                          style={{ 
+                            background: `linear-gradient(135deg, ${getStanceBackgroundColor(settings.model2.stance).replace('0.1', '0.2')}, ${getStanceBackgroundColor(settings.model2.stance).replace('0.1', '0.1')})`,
+                            border: `1px solid ${getStanceBackgroundColor(settings.model2.stance).replace('0.1', '0.3')}`,
+                          }}
+                        >
+                          <div className="flex items-center justify-between mb-3">
+                            <button
+                              onClick={() => toggleArgumentExpansion(roundIndex, secondSpeakerIndex)}
+                              className="text-gray-400 hover:text-white transition-colors duration-200 flex items-center gap-1"
                             >
-                              {rhetoricStyles.map((style) => (
-                                <option key={style.value} value={style.value} className="text-white bg-gray-800">
-                                  {style.label}
-                                </option>
-                              ))}
-                            </select>
-                            <div className="text-sm text-gray-400 mt-1">
-                              {rhetoricStyles.find(style => style.value === model.rhetoricStyle)?.description}
-                    </div>
-                  </div>
-
-                  <div>
-                            <label className="block mb-1 text-gray-300">Personality & Behavior Hints</label>
-                    <textarea
-                              value={model.systemPrompt}
-                      onChange={(e) => handleModelSettingChange(modelNum as 1 | 2, 'systemPrompt', e.target.value)}
-                              className="w-full rounded px-3 py-2 h-24 text-white transition-colors duration-300"
-                              style={{ 
-                                backgroundColor: getInputBackgroundColor(model.stance).replace('0.3', '0.15')
-                              }}
-                              placeholder="Add details to adjust model behaviour such as 'Debate like the Pope' or 'talk from the perspective of a cat'..."
-                    />
-                  </div>
-                </div>
-                      )}
-                    </div>
+                              {expandedArguments.has(`${roundIndex}-${secondSpeakerIndex}`) ? (
+                                <>
+                                  <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 15l7-7 7 7" />
+                                  </svg>
+                                  <span className="text-sm">Show Less</span>
+                                </>
+                              ) : (
+                                <>
+                                  <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
+                                  </svg>
+                                  <span className="text-sm">Show More</span>
+                                </>
+                              )}
+                            </button>
+                            <div className="text-lg font-semibold" style={{ color: getStanceColor(settings.model2.stance) }}>
+                              Second Speaker
+                            </div>
+                          </div>
+                          <div className="text-gray-200 leading-relaxed whitespace-pre-wrap">
+                            {expandedArguments.has(`${roundIndex}-${secondSpeakerIndex}`) ? (
+                              debate[secondSpeakerIndex].text
+                            ) : (
+                              <div>
+                                <p className="text-gray-300">{debate[secondSpeakerIndex].summary}</p>
+                              </div>
+                            )}
+                          </div>
+                        </div>
+                      </motion.div>
+                    )}
                   </div>
                 );
               })}
-              </div>
-          </div>
-          </div>
 
-        <div className="text-center mt-8">
-            <button
-              onClick={startDebate}
-              disabled={!!(isDebating || !settings.topic)}
-              className="bg-blue-600 hover:bg-blue-700 disabled:bg-gray-600 px-8 py-3 rounded-lg font-semibold transition-colors text-white"
-            >
-              {isDebating ? 'Debate in Progress...' : 'Start Debate'}
-            </button>
-          </div>
-
-          {user && showNoDebatesMessage && freeDebatesRemaining === 0 && (
-          <motion.div 
-            initial={{ opacity: 0, y: -10 }}
-            animate={{ opacity: 1, y: 0 }}
-            className="mt-3 text-blue-400 text-sm max-w-md mx-auto"
-          >
-            No free debates left. Next free debate within 7 days or consider supporting us by purchasing a PRO account 👑
-          </motion.div>
-        )}
-
-          {debate.length > 0 && (
-          <div className="mt-8 space-y-6">
-            <h2 
-              ref={topicRef}
-              className="text-2xl text-center mb-12 font-light tracking-wide bg-gradient-to-r from-gray-400 via-gray-300 to-gray-400 bg-clip-text text-transparent"
-            >
-              {settings.topic}
-            </h2>
-            
-            {Array.from({ length: Math.ceil(debate.length / 2) }, (_, roundIndex) => {
-              const roundNumber = roundIndex + 1;
-              const firstSpeakerIndex = roundIndex * 2;
-              const secondSpeakerIndex = firstSpeakerIndex + 1;
-              const roundInfo = getRoundTitle(roundNumber);
-              
-              return (
-                <div key={roundNumber} className="space-y-4">
-                  <div className="mb-6">
-                    <h3 className="text-xl font-semibold text-gray-300 mb-2 border-b border-gray-700/50 pb-2">
-                      {roundInfo.title}
-                    </h3>
-                    <p className="text-sm text-gray-400 italic">
-                      {roundInfo.description}
-                    </p>
+              {/* Loading Indicator - Moved to end of debate content */}
+              {loadingState.isLoading && (
+                <motion.div
+                  initial={{ opacity: 0, y: 20 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  exit={{ opacity: 0, y: -20 }}
+                  className="mt-8 p-4 rounded-lg bg-gray-800/50 backdrop-blur-sm border border-gray-700/50"
+                >
+                  <div className="flex items-center justify-center space-x-3">
+                    <div className="animate-spin rounded-full h-5 w-5 border-b-2 border-blue-500"></div>
+                    <div className="text-gray-300">
+                      <span className="font-semibold">{loadingState.speaker} Speaker</span>
+                      <span className="mx-2">|</span>
+                      <span>Round {loadingState.round}</span>
+                      <span className="mx-2">|</span>
+                      <span className="text-blue-400">{loadingState.type}</span>
+                    </div>
                   </div>
-                  
-                  {debate[firstSpeakerIndex] && (
-                    <motion.div
-                      initial={{ opacity: 0, x: -20 }}
-                      animate={{ opacity: 1, x: 0 }}
-                      transition={{ duration: 0.5 }}
-                      className="flex justify-start"
-                    >
-                      <div 
-                        className="w-3/4 p-6 rounded-lg shadow-xl backdrop-blur-sm"
-                        style={{ 
-                          background: `linear-gradient(135deg, ${getStanceBackgroundColor(settings.model1.stance).replace('0.1', '0.2')}, ${getStanceBackgroundColor(settings.model1.stance).replace('0.1', '0.1')})`,
-                          border: `1px solid ${getStanceBackgroundColor(settings.model1.stance).replace('0.1', '0.3')}`,
-                        }}
-                      >
-                        <div className="flex items-center justify-between mb-3">
-                          <div className="text-lg font-semibold" style={{ color: getStanceColor(settings.model1.stance) }}>
-                            First Speaker
-                          </div>
-                          <button
-                            onClick={() => toggleArgumentExpansion(roundIndex, firstSpeakerIndex)}
-                            className="text-gray-400 hover:text-white transition-colors duration-200 flex items-center gap-1"
-                          >
-                            {expandedArguments.has(`${roundIndex}-${firstSpeakerIndex}`) ? (
-                              <>
-                                <span className="text-sm">Show Less</span>
-                                <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 15l7-7 7 7" />
-                                </svg>
-                              </>
-                            ) : (
-                              <>
-                                <span className="text-sm">Show More</span>
-                                <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
-                                </svg>
-                              </>
-                            )}
-                          </button>
-                        </div>
-                        <div className="text-gray-200 leading-relaxed whitespace-pre-wrap">
-                          {expandedArguments.has(`${roundIndex}-${firstSpeakerIndex}`) ? (
-                            debate[firstSpeakerIndex].text
-                          ) : (
-                            <div>
-                              <p className="text-gray-300">{debate[firstSpeakerIndex].summary}</p>
-                            </div>
-                          )}
-                        </div>
-                      </div>
-                    </motion.div>
-                  )}
-                  
-                  {debate[secondSpeakerIndex] && (
-                    <motion.div
-                      initial={{ opacity: 0, x: 20 }}
-                      animate={{ opacity: 1, x: 0 }}
-                      transition={{ duration: 0.5 }}
-                      className="flex justify-end"
-                    >
-                      <div 
-                        className="w-3/4 p-6 rounded-lg shadow-xl backdrop-blur-sm"
-                        style={{ 
-                          background: `linear-gradient(135deg, ${getStanceBackgroundColor(settings.model2.stance).replace('0.1', '0.2')}, ${getStanceBackgroundColor(settings.model2.stance).replace('0.1', '0.1')})`,
-                          border: `1px solid ${getStanceBackgroundColor(settings.model2.stance).replace('0.1', '0.3')}`,
-                        }}
-                      >
-                        <div className="flex items-center justify-between mb-3">
-                          <button
-                            onClick={() => toggleArgumentExpansion(roundIndex, secondSpeakerIndex)}
-                            className="text-gray-400 hover:text-white transition-colors duration-200 flex items-center gap-1"
-                          >
-                            {expandedArguments.has(`${roundIndex}-${secondSpeakerIndex}`) ? (
-                              <>
-                                <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 15l7-7 7 7" />
-                                </svg>
-                                <span className="text-sm">Show Less</span>
-                              </>
-                            ) : (
-                              <>
-                                <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
-                                </svg>
-                                <span className="text-sm">Show More</span>
-                              </>
-                            )}
-                          </button>
-                          <div className="text-lg font-semibold" style={{ color: getStanceColor(settings.model2.stance) }}>
-                            Second Speaker
-                          </div>
-                        </div>
-                        <div className="text-gray-200 leading-relaxed whitespace-pre-wrap">
-                          {expandedArguments.has(`${roundIndex}-${secondSpeakerIndex}`) ? (
-                            debate[secondSpeakerIndex].text
-                          ) : (
-                            <div>
-                              <p className="text-gray-300">{debate[secondSpeakerIndex].summary}</p>
-                            </div>
-                          )}
-                        </div>
-                      </div>
-                    </motion.div>
-                  )}
-                </div>
-              );
-            })}
-
-            {/* Loading Indicator - Moved to end of debate content */}
-            {loadingState.isLoading && (
-              <motion.div
-                initial={{ opacity: 0, y: 20 }}
-                animate={{ opacity: 1, y: 0 }}
-                exit={{ opacity: 0, y: -20 }}
-                className="mt-8 p-4 rounded-lg bg-gray-800/50 backdrop-blur-sm border border-gray-700/50"
-              >
-                <div className="flex items-center justify-center space-x-3">
-                  <div className="animate-spin rounded-full h-5 w-5 border-b-2 border-blue-500"></div>
-                  <div className="text-gray-300">
-                    <span className="font-semibold">{loadingState.speaker} Speaker</span>
-                    <span className="mx-2">|</span>
-                    <span>Round {loadingState.round}</span>
-                    <span className="mx-2">|</span>
-                    <span className="text-blue-400">{loadingState.type}</span>
+                  <div className="mt-2 text-sm text-gray-400 text-center">
+                    Generating response, this may take a moment...
                   </div>
-                </div>
-                <div className="mt-2 text-sm text-gray-400 text-center">
-                  Generating response, this may take a moment...
-                </div>
-              </motion.div>
-            )}
+                </motion.div>
+              )}
 
-            {/* Show success/error messages */}
-            {error && (
-              <motion.div
-                initial={{ opacity: 0, y: -20 }}
-                animate={{ opacity: 1, y: 0 }}
-                className={`fixed top-4 right-4 p-4 rounded-lg shadow-xl z-50 ${
-                  error.includes('success') || error.includes('saved')
-                    ? 'bg-green-600/90'
-                    : 'bg-red-600/90'
-                } text-white backdrop-blur-sm`}
-              >
-                {error}
-              </motion.div>
-            )}
+              {/* Show success/error messages */}
+              {error && (
+                <motion.div
+                  initial={{ opacity: 0, y: -20 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  className={`fixed top-4 right-4 p-4 rounded-lg shadow-xl z-50 ${
+                    error.includes('success') || error.includes('saved')
+                      ? 'bg-green-600/90'
+                      : 'bg-red-600/90'
+                  } text-white backdrop-blur-sm`}
+                >
+                  {error}
+                </motion.div>
+              )}
 
-            {/* Replace with category selection and save section */}
-            {!loadingState.isLoading && !isSaving && debate.length > 0 && (
-              <motion.div
-                initial={{ opacity: 0, y: 20 }}
-                animate={{ opacity: 1, y: 0 }}
-                className="mt-12 p-6 bg-gray-800/50 backdrop-blur-sm border border-gray-700/50 rounded-lg shadow-xl"
-              >
-                <h3 className="text-xl font-semibold mb-4 text-center text-white">
-                  Save Your Debate
-                </h3>
-                <p className="mb-6 text-gray-300 text-center">
-                  Select categories that best describe your debate topic (up to 3)
-                </p>
-                <div className="grid grid-cols-3 gap-3 mb-6">
-                  {categories.map((category) => (
+              {/* Replace with category selection and save section */}
+              {!loadingState.isLoading && !isSaving && debate.length > 0 && (
+                <motion.div
+                  initial={{ opacity: 0, y: 20 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  className="mt-12 p-6 bg-gray-800/50 backdrop-blur-sm border border-gray-700/50 rounded-lg shadow-xl"
+                >
+                  <h3 className="text-xl font-semibold mb-4 text-center text-white">
+                    Save Your Debate
+                  </h3>
+                  <p className="mb-6 text-gray-300 text-center">
+                    Select categories that best describe your debate topic (up to 3)
+                  </p>
+                  <div className="grid grid-cols-3 gap-3 mb-6">
+                    {categories.map((category) => (
+                      <button
+                        key={category}
+                        onClick={() => {
+                          if (selectedCategories.includes(category)) {
+                            setSelectedCategories(prev => prev.filter(c => c !== category));
+                          } else if (selectedCategories.length < 3) {
+                            setSelectedCategories(prev => [...prev, category]);
+                          }
+                        }}
+                        className={`px-4 py-3 rounded-lg text-sm transition-colors ${
+                          selectedCategories.includes(category)
+                            ? 'bg-blue-600 text-white'
+                            : 'bg-gray-700/50 text-gray-300 hover:bg-gray-600/50'
+                        } ${selectedCategories.length >= 3 && !selectedCategories.includes(category) ? 'opacity-50 cursor-not-allowed' : ''}`}
+                      >
+                        {category}
+                      </button>
+                    ))}
+                  </div>
+                  <div className="flex justify-center">
                     <button
-                      key={category}
-                      onClick={() => {
-                        if (selectedCategories.includes(category)) {
-                          setSelectedCategories(prev => prev.filter(c => c !== category));
-                        } else if (selectedCategories.length < 3) {
-                          setSelectedCategories(prev => [...prev, category]);
-                        }
-                      }}
-                      className={`px-4 py-3 rounded-lg text-sm transition-colors ${
-                        selectedCategories.includes(category)
-                          ? 'bg-blue-600 text-white'
-                          : 'bg-gray-700/50 text-gray-300 hover:bg-gray-600/50'
-                      } ${selectedCategories.length >= 3 && !selectedCategories.includes(category) ? 'opacity-50 cursor-not-allowed' : ''}`}
+                      onClick={saveDebateToFirebase}
+                      disabled={selectedCategories.length === 0 || isSaving || isSaved}
+                      className={`px-6 py-3 ${
+                        isSaved 
+                          ? 'bg-green-600 cursor-not-allowed' 
+                          : 'bg-blue-600 hover:bg-blue-700 disabled:bg-gray-600'
+                      } rounded-lg text-white transition-colors flex items-center gap-2 text-lg`}
                     >
-                      {category}
+                      {isSaving ? (
+                        <>
+                          <div className="animate-spin rounded-full h-5 w-5 border-b-2 border-white"></div>
+                          Saving Debate...
+                        </>
+                      ) : isSaved ? (
+                        'Debate Saved'
+                      ) : (
+                        'Save Debate'
+                      )}
                     </button>
-                  ))}
-                </div>
-                <div className="flex justify-center">
-                  <button
-                    onClick={saveDebateToFirebase}
-                    disabled={selectedCategories.length === 0 || isSaving || isSaved}
-                    className={`px-6 py-3 ${
-                      isSaved 
-                        ? 'bg-green-600 cursor-not-allowed' 
-                        : 'bg-blue-600 hover:bg-blue-700 disabled:bg-gray-600'
-                    } rounded-lg text-white transition-colors flex items-center gap-2 text-lg`}
-                  >
-                    {isSaving ? (
-                      <>
-                        <div className="animate-spin rounded-full h-5 w-5 border-b-2 border-white"></div>
-                        Saving Debate...
-                      </>
-                    ) : isSaved ? (
-                      'Debate Saved'
-                    ) : (
-                      'Save Debate'
-                    )}
-                  </button>
-                </div>
-              </motion.div>
-            )}
-          </div>
-        )}
+                  </div>
+                </motion.div>
+              )}
+            </div>
+          )}
 
-        {/* Show loading indicator even when no debate content exists yet */}
-        {loadingState.isLoading && debate.length === 0 && (
-          <motion.div
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            exit={{ opacity: 0, y: -20 }}
-            className="mt-8 p-4 rounded-lg bg-gray-800/50 backdrop-blur-sm border border-gray-700/50"
-          >
-            <div className="flex items-center justify-center space-x-3">
-              <div className="animate-spin rounded-full h-5 w-5 border-b-2 border-blue-500"></div>
-              <div className="text-gray-300">
-                <span className="font-semibold">{loadingState.speaker} Speaker</span>
-                <span className="mx-2">|</span>
-                <span>Round {loadingState.round}</span>
-                <span className="mx-2">|</span>
-                <span className="text-blue-400">{loadingState.type}</span>
+          {/* Show loading indicator even when no debate content exists yet */}
+          {loadingState.isLoading && debate.length === 0 && (
+            <motion.div
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              exit={{ opacity: 0, y: -20 }}
+              className="mt-8 p-4 rounded-lg bg-gray-800/50 backdrop-blur-sm border border-gray-700/50"
+            >
+              <div className="flex items-center justify-center space-x-3">
+                <div className="animate-spin rounded-full h-5 w-5 border-b-2 border-blue-500"></div>
+                <div className="text-gray-300">
+                  <span className="font-semibold">{loadingState.speaker} Speaker</span>
+                  <span className="mx-2">|</span>
+                  <span>Round {loadingState.round}</span>
+                  <span className="mx-2">|</span>
+                  <span className="text-blue-400">{loadingState.type}</span>
+                </div>
               </div>
-            </div>
-            <div className="mt-2 text-sm text-gray-400 text-center">
-              Generating response, this may take a moment...
-            </div>
-          </motion.div>
-        )}
+              <div className="mt-2 text-sm text-gray-400 text-center">
+                Generating response, this may take a moment...
+              </div>
+            </motion.div>
+          )}
+        </div>
       </div>
     </div>
   );

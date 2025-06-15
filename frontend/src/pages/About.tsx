@@ -7,8 +7,8 @@ const About: React.FC = () => {
   const [activeTab, setActiveTab] = useState<'aai' | 'science' | 'backers'>('aai');
 
   return (
-    <div className="min-h-screen bg-gray-900 text-white p-4 sm:p-6 lg:p-8">
-      <div className="max-w-6xl mx-auto">
+    <div className="min-h-screen bg-white flex flex-col items-center py-12 px-4 sm:px-6 lg:px-8">
+      <div className="max-w-4xl w-full bg-surface border border-neutral rounded-2xl p-8 shadow-xl">
         {/* Header */}
         <div className="text-center mb-12">
           <h1 className="text-4xl md:text-5xl font-bold mb-8 leading-normal bg-clip-text text-transparent bg-gradient-to-r from-blue-500 via-indigo-500 to-blue-600">
@@ -16,7 +16,6 @@ const About: React.FC = () => {
           </h1>
           <p className="text-xl text-gray-400 font-light tracking-wide mb-2">
             Learn about the vision, how it is realised and how to support it          </p>
-
         </div>
 
         {/* Navigation */}
