@@ -7,7 +7,7 @@ import {
   signInWithEmailAndPassword,
   signOut as firebaseSignOut 
 } from 'firebase/auth';
-import { auth, db } from '../config/firebase';
+import { auth, db, setAuthPersistence } from '../config/firebase';
 import { doc, getDoc, setDoc, Timestamp } from 'firebase/firestore';
 import { getDebateUsage } from '../services/debateUsage';
 
@@ -38,35 +38,67 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
     loading: true,
     error: null
   });
+  const [persistenceReady, setPersistenceReady] = useState(false);
 
   useEffect(() => {
-    const unsubscribe = auth.onAuthStateChanged(async (firebaseUser) => {
-      try {
-        if (firebaseUser) {
-          // Get additional user data from Firestore
-          const userDoc = await getDoc(doc(db, 'users', firebaseUser.uid));
-          const userData = userDoc.data();
-          
-          // Combine Firebase user with additional data
-          const user: User = {
-            ...firebaseUser,
-            isPro: userData?.isPro || false
-          };
-          
-          setAuthState({ user, loading: false, error: null });
-        } else {
-          setAuthState({ user: null, loading: false, error: null });
-        }
-      } catch (error) {
-        setAuthState({ 
-          user: null, 
-          loading: false, 
-          error: error instanceof Error ? error : new Error('An unknown error occurred') 
+    let unsubscribe: (() => void) | undefined;
+    console.log('AuthProvider: Starting setAuthPersistence...');
+    setAuthPersistence
+      .then(() => {
+        console.log('AuthProvider: setAuthPersistence resolved');
+        setPersistenceReady(true);
+        unsubscribe = auth.onAuthStateChanged(async (firebaseUser) => {
+          console.log('AuthProvider: onAuthStateChanged fired', firebaseUser);
+          try {
+            if (firebaseUser) {
+              // Get additional user data from Firestore
+              const userDoc = await getDoc(doc(db, 'users', firebaseUser.uid));
+              const userData = userDoc.data();
+              // Combine Firebase user with additional data
+              const user: User = {
+                ...firebaseUser,
+                isPro: userData?.isPro || false
+              };
+              setAuthState({ user, loading: false, error: null });
+            } else {
+              setAuthState({ user: null, loading: false, error: null });
+            }
+          } catch (error) {
+            setAuthState({ 
+              user: null, 
+              loading: false, 
+              error: error instanceof Error ? error : new Error('An unknown error occurred') 
+            });
+          }
         });
-      }
-    });
-
-    return () => unsubscribe();
+      })
+      .catch((err) => {
+        console.error('Failed to set persistence:', err);
+        setPersistenceReady(true);
+        unsubscribe = auth.onAuthStateChanged(async (firebaseUser) => {
+          console.log('AuthProvider: onAuthStateChanged fired (catch)', firebaseUser);
+          try {
+            if (firebaseUser) {
+              const userDoc = await getDoc(doc(db, 'users', firebaseUser.uid));
+              const userData = userDoc.data();
+              const user: User = {
+                ...firebaseUser,
+                isPro: userData?.isPro || false
+              };
+              setAuthState({ user, loading: false, error: null });
+            } else {
+              setAuthState({ user: null, loading: false, error: null });
+            }
+          } catch (error) {
+            setAuthState({ 
+              user: null, 
+              loading: false, 
+              error: error instanceof Error ? error : new Error('An unknown error occurred') 
+            });
+          }
+        });
+      });
+    return () => { if (unsubscribe) unsubscribe(); };
   }, []);
 
   // Helper function to create/update user document

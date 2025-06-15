@@ -53,9 +53,27 @@ const categories = [
   'Funny'
 ];
 
+// Replace FaStarIcon with a 4-pointed star SVG inline component
+const FourPointStarIcon = ({ className, style }: { className?: string; style?: React.CSSProperties }) => (
+  <svg
+    viewBox="0 0 24 24"
+    fill="currentColor"
+    xmlns="http://www.w3.org/2000/svg"
+    className={className}
+    style={style}
+  >
+    <polygon points="12,3 15,12 12,21 9,12" />
+    <polygon points="3,12 12,15 21,12 12,9" />
+  </svg>
+);
+
 const CommunityLibrary: React.FC = () => {
+  console.log('CommunityLibrary component rendered');
   const { user } = useAuth();
   const [debates, setDebates] = useState<PublicDebate[]>([]);
+  const [debateRounds, setDebateRounds] = useState<Record<string, PublicDebate['rounds']>>({});
+  const [roundsLoading, setRoundsLoading] = useState<Record<string, boolean>>({});
+  const [roundsError, setRoundsError] = useState<Record<string, string>>({});
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [expandedDebateId, setExpandedDebateId] = useState<string | null>(null);
@@ -129,6 +147,7 @@ const CommunityLibrary: React.FC = () => {
   }, [user]);
 
   const fetchDebates = async () => {
+    console.log('fetchDebates called');
     try {
       setLoading(true);
       setError(null);
@@ -171,10 +190,12 @@ const CommunityLibrary: React.FC = () => {
 
       // Get all documents that match the time and sort criteria
       const querySnapshot = await getDocs(q);
-      let fetchedDebates = querySnapshot.docs.map(doc => ({
-        id: doc.id,
-        ...doc.data()
-      })) as PublicDebate[];
+      let fetchedDebates = querySnapshot.docs.map(doc => {
+        const data = doc.data();
+        // Exclude rounds from initial fetch
+        const { rounds, ...rest } = data;
+        return { id: doc.id, ...rest };
+      }) as PublicDebate[];
 
       // Filter by category in memory if category is selected
       // This avoids needing a complex index
@@ -184,7 +205,7 @@ const CommunityLibrary: React.FC = () => {
         );
       }
       
-      console.log('Fetched debates:', fetchedDebates.length);
+      console.log('Fetched debates:', fetchedDebates);
       setDebates(fetchedDebates);
       
     } catch (error) {
@@ -200,17 +221,46 @@ const CommunityLibrary: React.FC = () => {
   };
 
   const toggleDebateExpansion = async (debateId: string) => {
+    console.log('toggleDebateExpansion called for:', debateId);
     if (expandedDebateId === debateId) {
       setExpandedDebateId(null);
     } else {
       setExpandedDebateId(debateId);
+      // Only fetch rounds if not already loaded
+      if (!debateRounds[debateId]) {
+        setRoundsLoading(prev => ({ ...prev, [debateId]: true }));
+        setRoundsError(prev => ({ ...prev, [debateId]: '' }));
+        try {
+          console.log('Attempting to fetch debate with ID:', debateId);
+          const debateRef = doc(db, 'public_debates', debateId);
+          const debateSnap = await getDoc(debateRef);
+          if (debateSnap.exists()) {
+            const data = debateSnap.data();
+            console.log('Fetched debate data for ID', debateId, ':', data);
+            if (Array.isArray(data.rounds) && data.rounds.length > 0) {
+              setDebateRounds(prev => ({ ...prev, [debateId]: data.rounds }));
+            } else {
+              setDebateRounds(prev => ({ ...prev, [debateId]: [] }));
+              setRoundsError(prev => ({ ...prev, [debateId]: 'No rounds found for this debate.' }));
+            }
+          } else {
+            console.log('No debate found in Firestore for ID:', debateId);
+            setRoundsError(prev => ({ ...prev, [debateId]: 'Debate not found.' }));
+          }
+        } catch (error) {
+          console.error('Error fetching debate rounds:', error);
+          setRoundsError(prev => ({ ...prev, [debateId]: 'Error fetching debate rounds.' }));
+        } finally {
+          setRoundsLoading(prev => ({ ...prev, [debateId]: false }));
+        }
+      }
       
       // Increment view count
       try {
         const debateRef = doc(db, 'public_debates', debateId);
         await updateDoc(debateRef, {
-          views: increment(1)
-        });
+           views: increment(1)
+         });
         
         // Update local state
         setDebates(prev => prev.map(debate => 
@@ -826,170 +876,10 @@ const CommunityLibrary: React.FC = () => {
             </div>
           </div>
         </div>
-
-        {/* Star Filter */}
-        <div className="flex flex-wrap gap-2 mb-4">
-          <button
-            onClick={() => setStarFilter(false)}
-            className={`px-3 py-1 rounded-lg transition-colors ${!starFilter ? 'bg-blue-600 text-white' : 'bg-gray-700/50 text-gray-300 hover:bg-gray-600/50'}`}
-          >
-            All Debates
-          </button>
-          <button
-            onClick={() => setStarFilter(true)}
-            className={`px-3 py-1 rounded-lg transition-colors ${starFilter ? 'bg-blue-600 text-white' : 'bg-gray-700/50 text-gray-300 hover:bg-gray-600/50'}`}
-          >
-            Starred
-          </button>
-        </div>
-
-        {/* Loading, Error, or Debate List */}
-        <div className="space-y-4">
-          {loading ? (
-            <div className="text-center py-12">
-              <div className="inline-block animate-spin rounded-full h-8 w-8 border-t-2 border-b-2 border-blue-500"></div>
-              <div className="text-gray-400 mt-4">Loading debates...</div>
-            </div>
-          ) : error ? (
-            <div className="text-center py-12">
-              <div className="text-white mb-4">No debates for this filter, generate your own!</div>
-              <Link
-                to="/"
-                className="inline-block mt-4 px-6 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors"
-              >
-                Start a Debate
-              </Link>
-            </div>
-          ) : (starFilter ? debates.filter(d => starredDebates.includes(d.id)) : debates).length === 0 ? (
-            <div className="text-center py-12">
-              <div className="text-gray-400 mb-4">No debates found for the selected filters.</div>
-              <div className="text-blue-400 text-lg font-light">Now is your chance to be the first! 🎉</div>
-              <Link
-                to="/"
-                className="inline-block mt-4 px-6 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors"
-              >
-                Start a Debate
-              </Link>
-            </div>
-          ) : (
-            <>
-              {(starFilter ? debates.filter(d => starredDebates.includes(d.id)) : debates).map((debate) => (
-                <motion.div
-                  key={debate.id}
-                  className="bg-gray-800/30 rounded-lg p-4 backdrop-blur-sm border border-gray-700/50"
-                  initial={{ opacity: 0, y: 20 }}
-                  animate={{ opacity: 1, y: 0 }}
-                >
-                  <div className="flex items-start gap-4">
-                    {/* Vote buttons */}
-                    <div className="flex flex-col items-center space-y-2 w-24">
-                      {[
-                        { type: 'for', label: 'For', votes: debate.upvotes || 0, colors: ['#B162C9', '#822E8F'] },
-                        { type: 'interesting', label: 'Interesting', votes: 0, colors: ['#A08BD1', '#A08BD1'] },
-                        { type: 'against', label: 'Against', votes: debate.downvotes || 0, colors: ['#7140D9', '#1e40af'] },
-                      ].map(({ type, label, votes, colors }) => {
-                        const totalVotes = (debate.upvotes || 0) + (debate.downvotes || 0); // + interestingVotes if available
-                        const percent = totalVotes === 0 ? 0 : Math.round((votes / totalVotes) * 100);
-                        const [bright, dark] = colors;
-                        return (
-                          <button
-                            key={type}
-                            className="w-full py-2 rounded-lg font-semibold text-white mb-1 shadow text-center transition-all relative overflow-hidden"
-                            style={{ background: dark }}
-                            // onClick handler can be added here if voting is needed
-                          >
-                            {/* Bright color bar from right to left, width = percent */}
-                            <span
-                              className="absolute top-0 right-0 h-full"
-                              style={{ width: `${percent}%`, background: bright, zIndex: 1, borderRadius: '0.5rem' }}
-                            />
-                            <span className="relative z-10 block text-xs font-bold" style={{ textAlign: 'center' }}>{label}</span>
-                          </button>
-                        );
-                      })}
-                    </div>
-
-                    {/* Debate content */}
-                    <div className="flex-1">
-                      <div className="flex items-start justify-between">
-                        <h3 className="text-lg font-medium text-white">{debate.topic}</h3>
-                        <div className="flex items-center space-x-2">
-                          <button
-                            onClick={() => toggleStarDebate(debate.id)}
-                            className="focus:outline-none"
-                            title={starredDebates.includes(debate.id) ? 'Unstar' : 'Star'}
-                          >
-                            <FaStarIcon
-                              className={`h-5 w-5 ${starredDebates.includes(debate.id) ? 'text-yellow-400' : 'text-gray-400'}`}
-                              style={{ filter: starredDebates.includes(debate.id) ? 'drop-shadow(0 0 2px #facc15)' : 'none' }}
-                            />
-                          </button>
-                        </div>
-                      </div>
-
-                      <div className="mt-2 flex flex-wrap gap-2">
-                        {debate.categories.map((category) => (
-                          <span
-                            key={category}
-                            className="px-2 py-1 text-xs rounded-full bg-gray-700/50 text-gray-300"
-                          >
-                            {category}
-                          </span>
-                        ))}
-                      </div>
-
-                      <div className="mt-4 flex justify-between items-center">
-                        <button
-                          onClick={() => toggleDebateExpansion(debate.id)}
-                          className="text-blue-400 hover:text-blue-300 transition-colors text-sm"
-                        >
-                          {expandedDebateId === debate.id ? 'Hide Debate' : 'View Debate'}
-                        </button>
-                        <span className="text-sm text-gray-400">
-                          Shared {new Date(debate.sharedAt).toLocaleDateString()}
-                        </span>
-                      </div>
-
-                      {/* Expanded debate content */}
-                      <AnimatePresence>
-                        {expandedDebateId === debate.id && (
-                          <motion.div
-                            initial={{ opacity: 0, height: 0 }}
-                            animate={{ opacity: 1, height: 'auto' }}
-                            exit={{ opacity: 0, height: 0 }}
-                            className="mt-4 space-y-4"
-                          >
-                            {debate.rounds.map((round, roundIndex) => (
-                              <div key={roundIndex} className="space-y-2">
-                                <div className="flex justify-between items-center">
-                                  <h4 className="text-gray-300 font-medium">
-                                    Round {roundIndex + 1} - {round.speaker}
-                                  </h4>
-                                  <button
-                                    onClick={() => toggleRoundExpansion(`${debate.id}-${roundIndex}`)}
-                                    className="text-sm text-gray-400 hover:text-white transition-colors"
-                                  >
-                                    {expandedRounds.has(`${debate.id}-${roundIndex}`) ? 'Show Less' : 'Show More'}
-                                  </button>
-                                </div>
-                                <div className="text-gray-300">
-                                  {expandedRounds.has(`${debate.id}-${roundIndex}`) ? round.text : round.summary}
-                                </div>
-                              </div>
-                            ))}
-                          </motion.div>
-                        )}
-                      </AnimatePresence>
-                    </div>
-                  </div>
-                </motion.div>
-              ))}
-            </>
-          )}
-        </div>
       </div>
+      <div>DEBUG: This should always render if not loading or error.</div>
     </div>
   );
 };
 
-export default CommunityLibrary; 
+export default CommunityLibrary;

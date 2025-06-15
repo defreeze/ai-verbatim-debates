@@ -836,10 +836,10 @@ const DebateEngine: React.FC = () => {
                     className="rounded-lg p-4 transition-colors duration-300"
                     style={{ backgroundColor: getStanceBackgroundColor(model.stance) }}
                   >
-                    <h3 className="text-xl mb-4" style={{ color: getStanceColor(model.stance) }}>{modelNum === 1 ? "First Speaker" : "Second Speaker"}</h3>
+                    <h3 className="text-xl mb-4 text-white">{modelNum === 1 ? "First Speaker" : "Second Speaker"}</h3>
                     <div className="space-y-4">
                   <div>
-                        <div className="text-base font-semibold mb-2 text-center" style={{ color: getStanceColor(model.stance), fontSize: '1.15rem' }}>
+                        <div className="text-lg font-semibold mb-2 text-center" style={{ color: getStanceColor(model.stance), fontSize: '1.35rem' }}>
                           {getStanceLabel(model.stance)}
                         </div>
                         <div className="flex items-center space-x-2">

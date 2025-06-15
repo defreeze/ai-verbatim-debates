@@ -16,4 +16,11 @@ export interface User {
     creationTime?: string;
     lastSignInTime?: string;
   };
+}
+
+export interface Backer {
+  name: string;
+  amount: number; // in USD or relevant currency
+  message?: string;
+  date: string; // ISO string
 } 

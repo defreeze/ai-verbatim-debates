@@ -1,9 +1,10 @@
 import React, { useState } from 'react';
 import AboutAAI from './about/AboutAAI';
 import AboutScience from './about/AboutScience';
+import AboutBackers from './about/AboutBackers';
 
 const About: React.FC = () => {
-  const [activeTab, setActiveTab] = useState<'aai' | 'science'>('aai');
+  const [activeTab, setActiveTab] = useState<'aai' | 'science' | 'backers'>('aai');
 
   return (
     <div className="min-h-screen bg-gray-900 text-white p-4 sm:p-6 lg:p-8">
@@ -14,8 +15,7 @@ const About: React.FC = () => {
             About Verbatim
           </h1>
           <p className="text-xl text-gray-400 font-light tracking-wide mb-2">
-            Discover the technology and philosophy behind the debate engine
-          </p>
+            Learn about the vision, how it is realised and how to support it          </p>
 
         </div>
 
@@ -42,12 +42,24 @@ const About: React.FC = () => {
             >
               The Science
             </button>
+            <button
+              onClick={() => setActiveTab('backers')}
+              className={`px-6 py-2 rounded-lg transition-colors ${
+                activeTab === 'backers'
+                  ? 'bg-blue-600 text-white'
+                  : 'text-gray-300 hover:text-white hover:bg-gray-700/50'
+              }`}
+            >
+              The Backers
+            </button>
           </nav>
         </div>
 
         {/* Content */}
         <div className="mt-8">
-          {activeTab === 'aai' ? <AboutAAI /> : <AboutScience />}
+          {activeTab === 'aai' && <AboutAAI />}
+          {activeTab === 'science' && <AboutScience />}
+          {activeTab === 'backers' && <AboutBackers />}
         </div>
       </div>
     </div>

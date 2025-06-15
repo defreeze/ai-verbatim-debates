@@ -179,26 +179,26 @@ const DebateHistory: React.FC = () => {
   };
 
   const getStanceColor = (stance: number): string => {
-    if (stance <= -0.8) return 'text-red-500';
-    if (stance <= -0.3) return 'text-red-400';
-    if (stance <= 0.3) return 'text-gray-400';
-    if (stance <= 0.8) return 'text-green-400';
-    return 'text-green-500';
+    if (stance <= -0.6) return 'text-blue-600';          // Strongly Against
+    if (stance < -0.15) return 'text-blue-400';          // Against
+    if (stance <= 0.15) return 'text-gray-400';          // Neutral
+    if (stance < 0.6) return 'text-purple-400';           // For
+    return 'text-purple-600';
   };
 
   const getStanceBackgroundColor = (stance: number): string => {
-    if (stance <= -0.8) return 'bg-red-900/20';
-    if (stance <= -0.3) return 'bg-red-800/20';
-    if (stance <= 0.3) return 'bg-gray-800/20';
-    if (stance <= 0.8) return 'bg-green-800/20';
-    return 'bg-green-900/20';
+    if (stance <= -0.8) return 'bg-blue-900/20';
+    if (stance <= -0.3) return 'bg-blue-600/20';
+    if (stance <= 0.3) return 'bg-purple-600/20';
+    if (stance <= 0.8) return 'bg-purple-800/20';
+    return 'bg-purple-900/20';
   };
 
   const getStanceLabel = (stance: number): string => {
     if (stance <= -0.8) return 'Strongly Against';
     if (stance <= -0.3) return 'Against';
-    if (stance <= 0.3) return 'Neutral';
-    if (stance <= 0.8) return 'For';
+    if (stance <= 0.2) return 'Neutral';
+    if (stance <= 0.3) return 'For';
     return 'Strongly For';
   };
 
@@ -267,7 +267,7 @@ const DebateHistory: React.FC = () => {
         
         <div className="mb-8">
           <h1 className="text-3xl font-bold bg-gradient-to-r from-blue-500 via-indigo-500 to-blue-600 bg-clip-text text-transparent mb-2">
-            Your Debate History
+            Your Account Activity
           </h1>
           <p className="text-gray-400">
             {debates.length} {debates.length === 1 ? 'debate' : 'debates'} in your history

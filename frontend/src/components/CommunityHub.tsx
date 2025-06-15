@@ -24,7 +24,7 @@ const CommunityHub: React.FC = () => {
           </h1>
           <p className="text-xl text-gray-400 font-light tracking-wide text-center">
             {location.pathname.endsWith('/history')
-              ? 'Your personal debate generations, for you to manage'
+              ? 'Your own debate generations, accesable only to you'
               : randomText}
           </p>
         </div>
@@ -42,7 +42,7 @@ const CommunityHub: React.FC = () => {
                 }`
               }
             >
-              Community Library
+              Community Forum
             </NavLink>
             <NavLink
               to="/community/history"
@@ -54,7 +54,7 @@ const CommunityHub: React.FC = () => {
                 }`
               }
             >
-              Debate History
+              Account Activity
             </NavLink>
           </nav>
         </div>
