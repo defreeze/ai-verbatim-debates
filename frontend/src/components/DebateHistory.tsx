@@ -138,13 +138,7 @@ const DebateHistory: React.FC = () => {
       
       console.log('Preparing public debate data:', publicDebateData);
       
-      try {
-        const docRef = await addDoc(publicDebateRef, publicDebateData);
-        console.log('Successfully added public debate with ID:', docRef.id);
-      } catch (error) {
-        console.error('Error adding to public_debates:', error);
-        throw error;
-      }
+
       
       // Update the original debate document
       try {

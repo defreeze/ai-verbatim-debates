@@ -27,7 +27,7 @@ const App: React.FC = () => {
         <div className="min-h-screen bg-gray-900 text-white">
           <Navigation />
           <Routes>
-            <Route path="/" element={<DebateEngine />} />
+            <Route path="/" element={<Navigate to="/community/ranking" replace />} />
             <Route path="/history" element={
               <ProtectedRoute>
                 <History />
@@ -37,6 +37,7 @@ const App: React.FC = () => {
               <Route path="ranking" element={<CommunityLibrary />} />
               <Route path="history" element={<Navigate to="/community/history" replace />} />
             </Route>
+            <Route path="/engine" element={<DebateEngine />} />
             <Route path="/about" element={<About />} />
             <Route path="/login" element={<Login />} />
             <Route path="/account" element={
