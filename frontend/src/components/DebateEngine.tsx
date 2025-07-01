@@ -5,8 +5,9 @@ import { generateArgument } from '../config/openai';
 import Modal from './Modal';
 import { Link } from 'react-router-dom';
 import { incrementDebateCount, getDebateUsage } from '../services/debateUsage';
-import { doc, setDoc, collection, addDoc } from 'firebase/firestore';
+import { doc, setDoc, collection, addDoc, getDoc } from 'firebase/firestore';
 import { db } from '../config/firebase';
+import type { PublicDebate } from '../components/CommunityRankings';
 
 interface AIModel {
   name: string;
@@ -570,13 +571,17 @@ const DebateEngine: React.FC = () => {
       const userDebateRef = doc(collection(db, `users/${user.uid}/debates`));
       const newDebateId = userDebateRef.id;
       
-      const debateSummary = {
-        id: newDebateId, // Store the ID in the document
+      const debateSummary: PublicDebate = {
+        id: newDebateId,
         userId: user.uid,
         userDisplayName: user.displayName || 'Anonymous User',
         topic: settings.topic,
         categories: selectedCategories,
         timestamp: now,
+        sharedAt: now,
+        views: 0,
+        upvotes: 0,
+        downvotes: 0,
         isPro: user.isPro || false,
         model1: {
           name: settings.model1.name,
@@ -606,6 +611,9 @@ const DebateEngine: React.FC = () => {
       setIsSaved(true);
       setTimeout(() => setError(null), 3000);
 
+      // Make the debate public
+      await makeDebatePublic(debateSummary);
+
     } catch (error) {
       console.error('Error saving debate:', error);
       setError('Failed to save debate. Please try again.');
@@ -613,6 +621,22 @@ const DebateEngine: React.FC = () => {
       setIsSaving(false);
     }
   };
+
+  async function makeDebatePublic(userDebate: PublicDebate) {
+    // Use the debate's id field as the Firestore document ID in public_debates
+    const publicDebateId = userDebate.id;
+
+    // Optionally, fetch the latest data from the user's debate doc
+    // const userDebateSnap = await getDoc(doc(db, 'debates', publicDebateId));
+    // const userDebate = userDebateSnap.data();
+
+    // Write to public_debates with the same ID
+    await setDoc(doc(db, 'public_debates', publicDebateId), {
+      ...userDebate,
+      isPublic: true,
+      sharedAt: new Date().toISOString(), // or your preferred timestamp
+    });
+  }
 
   return (
     <div className="min-h-screen bg-gray-900 text-white p-4 sm:p-6 lg:p-8">
