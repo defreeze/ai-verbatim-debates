@@ -40,7 +40,9 @@ const About: React.FC = () => {
         transition={{ duration: 0.5 }}
         className="bg-gray-900 rounded-lg p-8 shadow-xl"
       >
-        <h1 className="text-3xl font-bold text-white mb-6">About Verbatim Debates</h1>
+        <h1 className="text-4xl md:text-5xl font-bold leading-normal bg-clip-text text-transparent bg-gradient-to-r from-blue-500 via-indigo-500 to-purple-600">
+          About DiscourseGraph
+        </h1>
         
         <div className="space-y-6 text-gray-300">
           <p className="text-lg">

@@ -751,7 +751,7 @@ const DebateEngine: React.FC = () => {
             animate={{ opacity: 1 }}
             transition={{ delay: 0.3, duration: 0.7 }}
           >
-            The Frontier Destination of AI Debates
+            Use our custom AI engine to generate rich, topic-driven discourse
           </motion.p>
         </motion.div>
 
@@ -761,14 +761,14 @@ const DebateEngine: React.FC = () => {
               <div className="grid grid-cols-[1fr,auto] gap-4 py-4">
                 <div className="relative">
                   <label className="block text-lg font-medium mb-2 bg-clip-text text-transparent bg-gradient-to-r from-blue-400 to-indigo-500">
-                  Debate topic
+                  Discourse topic
                   </label>
                   <motion.input
               type="text"
               value={settings.topic}
               onChange={handleTopicChange}
                     className="w-full bg-gray-950/50 rounded-lg px-6 py-4 text-lg text-white focus:outline-none focus:ring-2 focus:ring-blue-500/50 focus:bg-gray-900/70 transition-all duration-300 backdrop-blur-sm"
-                    placeholder="Enter any debate topic for generation..."
+                    placeholder="Enter any  topic for discussion..."
                     whileFocus={{ scale: 1.01 }}
                     transition={{ type: "spring", stiffness: 300, damping: 20 }}
                   />
@@ -970,7 +970,7 @@ const DebateEngine: React.FC = () => {
               disabled={!!(isDebating || !settings.topic)}
               className="bg-blue-600 hover:bg-blue-700 disabled:bg-gray-600 px-8 py-3 rounded-lg font-semibold transition-colors text-white"
             >
-              {isDebating ? 'Debate in Progress...' : 'Start Debate'}
+              {isDebating ? 'discussion in progress...' : 'Begin discussion'}
             </button>
           </div>
 

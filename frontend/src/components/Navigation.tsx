@@ -52,7 +52,7 @@ const Navigation: React.FC = () => {
             <div className="flex">
               <div className="flex-shrink-0 flex items-center">
                 <Link to="/" className="flex items-center h-14">
-                  <img src="/android-chrome-512x512.png" alt="AI Verbatim Logo" className="h-10 w-10 object-contain" style={{ maxHeight: '2.5rem', opacity: 0.8 }} />
+                  <img src="/android-chrome-512x512.png" alt="DiscourseGraph Logo" className="h-10 w-10 object-contain" style={{ maxHeight: '2.5rem', opacity: 0.8 }} />
                 </Link>
               </div>
               <div className="hidden sm:ml-6 sm:flex sm:space-x-8">
@@ -64,7 +64,7 @@ const Navigation: React.FC = () => {
                       : 'border-transparent text-gray-300 hover:border-gray-300 hover:text-white'
                   } inline-flex items-center px-1 pt-1 border-b-2 text-sm font-medium`}
                 >
-                  Community Hub
+                  DiscourseGraph
                 </Link>
                 <Link
                   to="/engine"
@@ -74,7 +74,7 @@ const Navigation: React.FC = () => {
                       : 'border-transparent text-gray-300 hover:border-gray-300 hover:text-white'
                   } inline-flex items-center px-1 pt-1 border-b-2 text-sm font-medium`}
                 >
-                  Debate Engine
+                  AI Engine
                 </Link>
                 <Link
                   to="/about"
@@ -171,7 +171,7 @@ const Navigation: React.FC = () => {
                         } block px-4 py-2 text-sm relative z-50`}
                         onClick={() => setIsOpen(false)}
                       >
-                        Community Hub
+                        DiscourseGraph
                       </Link>
                       <Link
                         to="/"

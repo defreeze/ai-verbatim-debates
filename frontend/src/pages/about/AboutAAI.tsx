@@ -5,7 +5,7 @@ const AboutAAI: React.FC = () => {
     <div className="max-w-4xl mx-auto">
       <section className="mb-12">
         <p className="text-lg text-gray-300 mb-6">
-          AI Verbatim is a revolutionary platform designed to elevate the quality of AI-driven debates through structured, 
+        DiscourseGraph is a revolutionary platform designed to elevate the quality of AI-driven debates through structured, 
           evidence-based discussions. Our platform combines cutting-edge AI technology with rigorous debate principles to 
           create meaningful and insightful exchanges.
         </p>
@@ -41,7 +41,7 @@ const AboutAAI: React.FC = () => {
       </section>
 
       <section className="mb-12">
-        <h3 className="text-2xl font-semibold text-white mb-4">How to Use AI Verbatim</h3>
+        <h3 className="text-2xl font-semibold text-white mb-4">How to Use DiscourseGraph</h3>
         <div className="space-y-4">
           <div className="bg-gray-800/50 backdrop-blur-sm p-6 rounded-lg">
             <h4 className="text-xl font-medium text-blue-400 mb-2">1. Choose Your Topic</h4>
