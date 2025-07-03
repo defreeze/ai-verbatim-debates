@@ -5,7 +5,7 @@ const AboutScience: React.FC = () => {
     <div className="max-w-4xl mx-auto">
       <section className="mb-12">
         <p className="text-lg text-gray-300 mb-6">
-          AI Verbatim is powered by a sophisticated multi-agent framework that leverages advanced Language Models (LLMs) 
+          DiscourseGraph is powered by a sophisticated multi-agent framework that leverages advanced Language Models (LLMs) 
           to achieve human-level performance in competitive debate. Our system employs a dynamic architecture where 
           specialized agents work together to deliver comprehensive and accurate debates.
         </p>

@@ -11,12 +11,11 @@ const About: React.FC = () => {
       <div className="max-w-6xl mx-auto">
         {/* Header */}
         <div className="text-center mb-12">
-          <h1 className="text-4xl md:text-5xl font-bold mb-8 leading-normal bg-clip-text text-transparent bg-gradient-to-r from-blue-500 via-indigo-500 to-blue-600">
-            About Verbatim
+          <h1 className="text-4xl md:text-5xl font-bold leading-relaxed pb-2 mb-4 bg-clip-text text-transparent bg-gradient-to-r from-blue-500 via-indigo-500 to-purple-600">
+            About DiscourseGraph
           </h1>
-          <p className="text-xl text-gray-400 font-light tracking-wide mb-2">
+          <p className="text-xl text-gray-400 font-light tracking-wide mt-2 mb-8">
             Learn about the vision, how it is realised and how to support it          </p>
-
         </div>
 
         {/* Navigation */}

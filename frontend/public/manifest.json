@@ -1,9 +1,9 @@
 {
-  "short_name": "AI Verbatim",
-  "name": "AI Verbatim - The Frontier Destination for AI Debates",
+  "short_name": "DiscourseGraph",
+  "name": "DiscourseGraph",
   "icons": [
     {
-      "src": "favicon.ico",
+      "src": "ai-verbatim-logo.png",
       "sizes": "64x64 32x32 24x24 16x16",
       "type": "image/x-icon"
     }
