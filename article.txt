@@ -1,10 +1,10 @@
-# Building AI Verbatim: A Real-time AI Debate Platform with React, Firebase, and GPT-4
+# Building DiscourseGraph: A Real-time AI Debate Platform with React, Firebase, and GPT-4
 
-AI Verbatim is an innovative debate platform that leverages modern web technologies and AI to create dynamic, engaging debates between AI agents. In this technical deep-dive, we'll explore the architecture, implementation details, and key technical decisions that power this unique application.
+DiscourseGraph.net is a new way for discourse. A debate platform that leverages modern web technologies and AI to create dynamic, engaging debates between AI agents. In this technical deep-dive, we'll explore the architecture, implementation details, and key technical decisions that power this unique application.
 
 ## Learning About Multi-Agent Systems
 
-The primary motivation behind AI Verbatim was to explore and understand multi-agent systems in a practical context. While much of the discussion around AI focuses on single-agent interactions (like ChatGPT), the real potential lies in creating systems where multiple AI agents can interact meaningfully.
+The primary motivation behind DiscourseGraph was to explore and understand multi-agent systems in a practical context. While much of the discussion around AI focuses on single-agent interactions (like ChatGPT), the real potential lies in creating systems where multiple AI agents can interact meaningfully.
 
 Key learnings from building a multi-agent debate system:
 
@@ -178,7 +178,7 @@ const debouncedSearch = useDebounce(searchTerm, 300);
 
 ## Conclusion
 
-AI Verbatim demonstrates the potential of combining modern web technologies with AI capabilities. The architecture balances user experience, performance, and AI interaction, creating a unique platform for automated debates.
+DiscourseGraph demonstrates the potential of combining modern web technologies with AI capabilities. The architecture balances user experience, performance, and AI interaction, creating a unique platform for automated debates.
 
 Key takeaways:
 - Effective prompt engineering is crucial for AI consistency

@@ -1,0 +1,75 @@
+[debug] [2025-09-03T15:29:17.306Z] ----------------------------------------------------------------------
+[debug] [2025-09-03T15:29:17.316Z] Command:       C:\Program Files\nodejs\node.exe C:\Users\alexd\AppData\Roaming\npm\node_modules\firebase-tools\lib\bin\firebase.js deploy --only firestore:rules --debug
+[debug] [2025-09-03T15:29:17.317Z] CLI Version:   14.6.0
+[debug] [2025-09-03T15:29:17.318Z] Platform:      win32
+[debug] [2025-09-03T15:29:17.318Z] Node Version:  v22.16.0
+[debug] [2025-09-03T15:29:17.319Z] Time:          Wed Sep 03 2025 17:29:17 GMT+0200 (Midden-Europese zomertijd)
+[debug] [2025-09-03T15:29:17.319Z] ----------------------------------------------------------------------
+[debug] 
+[debug] [2025-09-03T15:29:17.328Z] >>> [apiv2][query] GET https://firebase-public.firebaseio.com/cli.json [none]
+[debug] [2025-09-03T15:29:18.390Z] > command requires scopes: ["email","openid","https://www.googleapis.com/auth/cloudplatformprojects.readonly","https://www.googleapis.com/auth/firebase","https://www.googleapis.com/auth/cloud-platform"]
+[debug] [2025-09-03T15:29:18.392Z] > authorizing via signed-in user (alexthevries@gmail.com)
+[debug] [2025-09-03T15:29:18.394Z] [iam] checking project ai-verbatim for permissions ["datastore.indexes.create","datastore.indexes.delete","datastore.indexes.list","datastore.indexes.update","firebase.projects.get"]
+[debug] [2025-09-03T15:29:18.396Z] Checked if tokens are valid: false, expires at: 1756415777263
+[debug] [2025-09-03T15:29:18.397Z] Checked if tokens are valid: false, expires at: 1756415777263
+[debug] [2025-09-03T15:29:18.398Z] > refreshing access token with scopes: []
+[debug] [2025-09-03T15:29:18.400Z] >>> [apiv2][query] POST https://www.googleapis.com/oauth2/v3/token [none]
+[debug] [2025-09-03T15:29:18.400Z] >>> [apiv2][body] POST https://www.googleapis.com/oauth2/v3/token [omitted]
+[debug] [2025-09-03T15:29:18.596Z] <<< [apiv2][status] POST https://www.googleapis.com/oauth2/v3/token 200
+[debug] [2025-09-03T15:29:18.597Z] <<< [apiv2][body] POST https://www.googleapis.com/oauth2/v3/token [omitted]
+[debug] [2025-09-03T15:29:18.630Z] >>> [apiv2][query] POST https://cloudresourcemanager.googleapis.com/v1/projects/ai-verbatim:testIamPermissions [none]
+[debug] [2025-09-03T15:29:18.631Z] >>> [apiv2][(partial)header] POST https://cloudresourcemanager.googleapis.com/v1/projects/ai-verbatim:testIamPermissions x-goog-quota-user=projects/ai-verbatim
+[debug] [2025-09-03T15:29:18.632Z] >>> [apiv2][body] POST https://cloudresourcemanager.googleapis.com/v1/projects/ai-verbatim:testIamPermissions {"permissions":["datastore.indexes.create","datastore.indexes.delete","datastore.indexes.list","datastore.indexes.update","firebase.projects.get"]}
+[debug] [2025-09-03T15:29:18.725Z] <<< [apiv2][status] GET https://firebase-public.firebaseio.com/cli.json 200
+[debug] [2025-09-03T15:29:18.726Z] <<< [apiv2][body] GET https://firebase-public.firebaseio.com/cli.json {"cloudBuildErrorAfter":1594252800000,"cloudBuildWarnAfter":1590019200000,"defaultNode10After":1594252800000,"minVersion":"3.0.5","node8DeploysDisabledAfter":1613390400000,"node8RuntimeDisabledAfter":1615809600000,"node8WarnAfter":1600128000000}
+[debug] [2025-09-03T15:29:19.396Z] <<< [apiv2][status] POST https://cloudresourcemanager.googleapis.com/v1/projects/ai-verbatim:testIamPermissions 200
+[debug] [2025-09-03T15:29:19.398Z] <<< [apiv2][body] POST https://cloudresourcemanager.googleapis.com/v1/projects/ai-verbatim:testIamPermissions {"permissions":["datastore.indexes.create","datastore.indexes.delete","datastore.indexes.list","datastore.indexes.update","firebase.projects.get"]}
+[info] 
+[info] === Deploying to 'ai-verbatim'...
+[info] 
+[info] i  deploying firestore 
+[info] i  firestore: reading indexes from firestore.indexes.json... 
+[info] i  cloud.firestore: checking firestore.rules for compilation errors... 
+[debug] [2025-09-03T15:29:19.425Z] Checked if tokens are valid: true, expires at: 1756916957598
+[debug] [2025-09-03T15:29:19.427Z] Checked if tokens are valid: true, expires at: 1756916957598
+[debug] [2025-09-03T15:29:19.428Z] >>> [apiv2][query] POST https://firebaserules.googleapis.com/v1/projects/ai-verbatim:test [none]
+[debug] [2025-09-03T15:29:19.430Z] >>> [apiv2][body] POST https://firebaserules.googleapis.com/v1/projects/ai-verbatim:test [omitted]
+[debug] [2025-09-03T15:29:20.299Z] <<< [apiv2][status] POST https://firebaserules.googleapis.com/v1/projects/ai-verbatim:test 200
+[debug] [2025-09-03T15:29:20.300Z] <<< [apiv2][body] POST https://firebaserules.googleapis.com/v1/projects/ai-verbatim:test {}
+[info] +  cloud.firestore: rules file firestore.rules compiled successfully 
+[debug] [2025-09-03T15:29:20.303Z] Checked if tokens are valid: true, expires at: 1756916957598
+[debug] [2025-09-03T15:29:20.304Z] Checked if tokens are valid: true, expires at: 1756916957598
+[debug] [2025-09-03T15:29:20.306Z] >>> [apiv2][query] GET https://firestore.googleapis.com/v1/projects/ai-verbatim/databases/(default) [none]
+[debug] [2025-09-03T15:29:20.550Z] <<< [apiv2][status] GET https://firestore.googleapis.com/v1/projects/ai-verbatim/databases/(default) 200
+[debug] [2025-09-03T15:29:20.551Z] <<< [apiv2][body] GET https://firestore.googleapis.com/v1/projects/ai-verbatim/databases/(default) {"name":"projects/ai-verbatim/databases/(default)","uid":"5a8840d8-0936-4960-b20a-d532595bc040","createTime":"2025-06-09T13:00:16.633047Z","updateTime":"2025-06-09T13:00:16.633047Z","locationId":"eur3","type":"FIRESTORE_NATIVE","concurrencyMode":"PESSIMISTIC","versionRetentionPeriod":"3600s","earliestVersionTime":"2025-09-03T14:29:21.962629Z","appEngineIntegrationMode":"DISABLED","keyPrefix":"e","pointInTimeRecoveryEnablement":"POINT_IN_TIME_RECOVERY_DISABLED","deleteProtectionState":"DELETE_PROTECTION_DISABLED","databaseEdition":"STANDARD","freeTier":true,"etag":"IKuI3ab0vI8DMLGH9rm48Y0D"}
+[debug] [2025-09-03T15:29:20.555Z] Checked if tokens are valid: true, expires at: 1756916957598
+[debug] [2025-09-03T15:29:20.556Z] Checked if tokens are valid: true, expires at: 1756916957598
+[debug] [2025-09-03T15:29:20.560Z] >>> [apiv2][query] GET https://firebaserules.googleapis.com/v1/projects/ai-verbatim/releases pageSize=10&pageToken=
+[debug] [2025-09-03T15:29:20.868Z] <<< [apiv2][status] GET https://firebaserules.googleapis.com/v1/projects/ai-verbatim/releases 200
+[debug] [2025-09-03T15:29:20.869Z] <<< [apiv2][body] GET https://firebaserules.googleapis.com/v1/projects/ai-verbatim/releases {"releases":[{"name":"projects/ai-verbatim/releases/cloud.firestore","rulesetName":"projects/ai-verbatim/rulesets/af2fc7d9-163f-4abe-8e40-22b7b8a774e5","createTime":"2025-06-09T13:00:19.698712Z","updateTime":"2025-06-14T15:50:10.260887Z"}]}
+[debug] [2025-09-03T15:29:20.870Z] Checked if tokens are valid: true, expires at: 1756916957598
+[debug] [2025-09-03T15:29:20.870Z] Checked if tokens are valid: true, expires at: 1756916957598
+[debug] [2025-09-03T15:29:20.871Z] >>> [apiv2][query] GET https://firebaserules.googleapis.com/v1/projects/ai-verbatim/rulesets/af2fc7d9-163f-4abe-8e40-22b7b8a774e5 [none]
+[debug] [2025-09-03T15:29:21.824Z] <<< [apiv2][status] GET https://firebaserules.googleapis.com/v1/projects/ai-verbatim/rulesets/af2fc7d9-163f-4abe-8e40-22b7b8a774e5 200
+[debug] [2025-09-03T15:29:21.826Z] <<< [apiv2][body] GET https://firebaserules.googleapis.com/v1/projects/ai-verbatim/rulesets/af2fc7d9-163f-4abe-8e40-22b7b8a774e5 [omitted]
+[info] i  firestore: uploading rules firestore.rules... 
+[debug] [2025-09-03T15:29:21.835Z] Checked if tokens are valid: true, expires at: 1756916957598
+[debug] [2025-09-03T15:29:21.836Z] Checked if tokens are valid: true, expires at: 1756916957598
+[debug] [2025-09-03T15:29:21.838Z] >>> [apiv2][query] POST https://firebaserules.googleapis.com/v1/projects/ai-verbatim/rulesets [none]
+[debug] [2025-09-03T15:29:21.839Z] >>> [apiv2][body] POST https://firebaserules.googleapis.com/v1/projects/ai-verbatim/rulesets [omitted]
+[debug] [2025-09-03T15:29:22.678Z] <<< [apiv2][status] POST https://firebaserules.googleapis.com/v1/projects/ai-verbatim/rulesets 200
+[debug] [2025-09-03T15:29:22.679Z] <<< [apiv2][body] POST https://firebaserules.googleapis.com/v1/projects/ai-verbatim/rulesets {"name":"projects/ai-verbatim/rulesets/d71bd74f-1851-425c-99f7-fa2818cddbe3","source":{"files":[{"content":"rules_version = '2';\n\nservice cloud.firestore {\n  match /databases/{database}/documents {\n    // Helper functions\n    function isAuthenticated() {\n      return request.auth != null;\n    }\n    \n    function isOwner(userId) {\n      return isAuthenticated() && request.auth.uid == userId;\n    }\n\n    function debug(msg) {\n      return msg;\n    }\n\n    // Public debates collection - anyone can read, authenticated users can create and vote\n    match /public_debates/{debateId} {\n      allow read: if true;  // Allow public read access\n      allow create: if isAuthenticated();\n      allow update: if isAuthenticated() && (\n        debug({\n          'auth': request.auth,\n          'resource': resource.data,\n          'request': request.resource.data,\n          'diff': request.resource.data.diff(resource.data),\n          'affected': request.resource.data.diff(resource.data).affectedKeys()\n        }) != null &&\n        (\n          // Allow debate owner to update anything\n          resource.data.userId == request.auth.uid ||\n          // Allow authenticated users to only update vote-related fields\n          request.resource.data.diff(resource.data).affectedKeys().hasOnly(['upvotes', 'downvotes', 'votes'])\n        )\n      );\n      allow delete: if isOwner(resource.data.userId);\n    }\n\n    // User-specific debates\n    match /users/{userId}/debates/{debateId} {\n      allow read, write: if isOwner(userId);\n    }\n\n    // User profiles\n    match /users/{userId} {\n      allow read: if true;  // Public profiles\n      allow write: if isOwner(userId);\n    }\n\n    // Debate usage tracking\n    match /debateUsage/{userId} {\n      allow read: if isOwner(userId);\n      allow create: if isOwner(userId);\n      allow update: if isOwner(userId);\n    }\n\n    // Threaded discussion responses - authenticated users can read and write\n    match /threaded_responses/{responseId} {\n      allow read: if isAuthenticated();\n      allow create: if isAuthenticated() && \n        request.resource.data.authorId == request.auth.uid;\n      allow update: if isAuthenticated() && \n        resource.data.authorId == request.auth.uid;\n      allow delete: if isAuthenticated() && \n        resource.data.authorId == request.auth.uid;\n    }\n\n    // Deny access to all other collections by default\n    match /{document=**} {\n      allow read, write: if false;\n    }\n  }\n}\n","name":"firestore.rules"}]},"createTime":"2025-09-03T15:29:24.014895Z","metadata":{"services":["cloud.firestore"]}}
+[debug] [2025-09-03T15:29:22.681Z] [rules] created ruleset projects/ai-verbatim/rulesets/d71bd74f-1851-425c-99f7-fa2818cddbe3
+[debug] [2025-09-03T15:29:22.683Z] [rules] releasing cloud.firestore/(default) with ruleset projects/ai-verbatim/rulesets/d71bd74f-1851-425c-99f7-fa2818cddbe3
+[debug] [2025-09-03T15:29:22.684Z] Checked if tokens are valid: true, expires at: 1756916957598
+[debug] [2025-09-03T15:29:22.684Z] Checked if tokens are valid: true, expires at: 1756916957598
+[debug] [2025-09-03T15:29:22.685Z] >>> [apiv2][query] PATCH https://firebaserules.googleapis.com/v1/projects/ai-verbatim/releases/cloud.firestore/(default) [none]
+[debug] [2025-09-03T15:29:22.686Z] >>> [apiv2][body] PATCH https://firebaserules.googleapis.com/v1/projects/ai-verbatim/releases/cloud.firestore/(default) {"release":{"name":"projects/ai-verbatim/releases/cloud.firestore/(default)","rulesetName":"projects/ai-verbatim/rulesets/d71bd74f-1851-425c-99f7-fa2818cddbe3"}}
+[debug] [2025-09-03T15:29:23.566Z] <<< [apiv2][status] PATCH https://firebaserules.googleapis.com/v1/projects/ai-verbatim/releases/cloud.firestore/(default) 200
+[debug] [2025-09-03T15:29:23.567Z] <<< [apiv2][body] PATCH https://firebaserules.googleapis.com/v1/projects/ai-verbatim/releases/cloud.firestore/(default) {"name":"projects/ai-verbatim/releases/cloud.firestore","rulesetName":"projects/ai-verbatim/rulesets/d71bd74f-1851-425c-99f7-fa2818cddbe3","createTime":"2025-06-09T13:00:19.698712Z","updateTime":"2025-09-03T15:29:24.901803Z"}
+[debug] [2025-09-03T15:29:23.568Z] [rules] updated release projects/ai-verbatim/releases/cloud.firestore
+[info] +  firestore: released rules firestore.rules to cloud.firestore 
+[info] 
+[info] +  Deploy complete! 
+[info] 
+[info] Project Console: https://console.firebase.google.com/project/ai-verbatim/overview

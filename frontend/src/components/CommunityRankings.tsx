@@ -1,10 +1,14 @@
-import React, { useState, useEffect } from 'react';
-import { collection, query, where, orderBy, getDocs, doc, updateDoc, increment, deleteField, getDoc, deleteDoc, setDoc } from 'firebase/firestore';
+import React, { useState, useEffect, useRef } from 'react';
+import { createPortal } from 'react-dom';
+import { collection, query, where, orderBy, getDocs, doc, updateDoc, increment, deleteField, getDoc, setDoc } from 'firebase/firestore';
 import { db } from '../config/firebase';
 import { useAuth } from '../hooks/useAuth';
 import { motion, AnimatePresence } from 'framer-motion';
 import Modal from './Modal';
 import { Link } from 'react-router-dom';
+import { ChevronDownIcon, MagnifyingGlassIcon, XMarkIcon } from '@heroicons/react/24/outline';
+import ThreadedDiscussion from './ThreadedDiscussion';
+import type { PublicDebate } from '../types/debate';
 
 // 4-pointed star SVG component
 const FourPointStarIcon = ({ className, style }: { className?: string; style?: React.CSSProperties }) => (
@@ -22,34 +26,7 @@ const FourPointStarIcon = ({ className, style }: { className?: string; style?: R
   </svg>
 );
 
-export interface PublicDebate {
-  id: string;
-  topic: string;
-  userId: string;
-  userDisplayName: string;
-  timestamp: string;
-  sharedAt: string;
-  views: number;
-  upvotes: number;
-  downvotes: number;
-  categories: string[];
-  model1: {
-    name: string;
-    stance: number;
-    rhetoricStyle: string;
-  };
-  model2: {
-    name: string;
-    stance: number;
-    rhetoricStyle: string;
-  };
-  rounds: Array<{
-    speaker: string;
-    text: string;
-    summary: string;
-  }>;
-  isPro: boolean;
-}
+
 
 type SortOption = 'newest' | 'popular' | 'controversial';
 type TimeFilter = 'all' | 'today' | 'week' | 'month';
@@ -74,6 +51,7 @@ const CommunityLibrary: React.FC = () => {
   const [debates, setDebates] = useState<PublicDebate[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const [showLoadingIcon, setShowLoadingIcon] = useState(false);
   const [expandedDebateId, setExpandedDebateId] = useState<string | null>(null);
   const [sortBy, setSortBy] = useState<SortOption>('newest');
   const [timeFilter, setTimeFilter] = useState<TimeFilter>('all');
@@ -89,10 +67,45 @@ const CommunityLibrary: React.FC = () => {
   const [debateRounds, setDebateRounds] = useState<Record<string, Array<{ speaker: string; text: string; summary: string }>>>({});
   const [roundsLoading, setRoundsLoading] = useState<Record<string, boolean>>({});
   const [roundsError, setRoundsError] = useState<Record<string, string>>({});
+  
+  // New filter states
+  const [searchQuery, setSearchQuery] = useState('');
+  const [searchInput, setSearchInput] = useState(''); // For the input field value
+  const [showCategoryDropdown, setShowCategoryDropdown] = useState(false);
+  const [showSortDropdown, setShowSortDropdown] = useState(false);
+  const [showTimeDropdown, setShowTimeDropdown] = useState(false);
+
+  // Close dropdowns when clicking outside
+  useEffect(() => {
+    const handleClickOutside = (event: MouseEvent) => {
+      const target = event.target as Element;
+      // Only close if clicking outside of any dropdown
+      if (!target.closest('.dropdown-container')) {
+        setShowCategoryDropdown(false);
+        setShowSortDropdown(false);
+        setShowTimeDropdown(false);
+      }
+    };
+
+    document.addEventListener('click', handleClickOutside);
+    return () => document.removeEventListener('click', handleClickOutside);
+  }, []);
 
   useEffect(() => {
     fetchDebates();
-  }, [sortBy, timeFilter, selectedCategory]);
+  }, [sortBy, timeFilter, selectedCategory, searchQuery]);
+
+  // Show loading icon only after 1 second
+  useEffect(() => {
+    if (loading) {
+      const timer = setTimeout(() => {
+        setShowLoadingIcon(true);
+      }, 1000);
+      return () => clearTimeout(timer);
+    } else {
+      setShowLoadingIcon(false);
+    }
+  }, [loading]);
 
   // Add new effect to load user votes when user changes
   useEffect(() => {
@@ -202,16 +215,25 @@ const CommunityLibrary: React.FC = () => {
           debate.categories && debate.categories.includes(selectedCategory)
         );
       }
+
+      // Filter by search query
+      if (searchQuery.trim()) {
+        const query = searchQuery.toLowerCase();
+        fetchedDebates = fetchedDebates.filter(debate => 
+          debate.topic.toLowerCase().includes(query) ||
+          debate.categories.some(cat => cat.toLowerCase().includes(query))
+        );
+      }
       
-      console.log('Fetched debates:', fetchedDebates.length);
+      console.log('Fetched discourse:', fetchedDebates.length);
       setDebates(fetchedDebates);
       
     } catch (error) {
-      console.error('Error fetching debates:', error);
+      console.error('Error fetching discourse:', error);
       if (error instanceof Error) {
-        setError(`Unable to load debates: ${error.message}`);
+        setError(`Unable to load discourse: ${error.message}`);
       } else {
-        setError('Unable to load debates. Please try again later.');
+        setError('Unable to load discourse. Please try again later.');
       }
     } finally {
       setLoading(false);
@@ -268,6 +290,7 @@ const CommunityLibrary: React.FC = () => {
     });
   };
 
+  /*
   const handleVote = async (debateId: string, voteType: VoteType) => {
     if (!user) {
       setShowLoginModal(true);
@@ -357,7 +380,9 @@ const CommunityLibrary: React.FC = () => {
       }
     }
   };
+  */
 
+  /*
   const calculateVotePercentage = (upvotes: number, downvotes: number): number => {
     const total = upvotes + downvotes;
     if (total === 0) return 100; // If no votes, show 100%
@@ -394,6 +419,220 @@ const CommunityLibrary: React.FC = () => {
     if (value <= 0.8) return 'For';
     return 'Strongly For';
   };
+  */
+
+  // Helper functions for dropdown labels
+  const getSortLabel = (sort: SortOption): string => {
+    switch (sort) {
+      case 'newest': return 'Most Recent';
+      case 'popular': return 'Most Popular';
+      case 'controversial': return 'Most Controversial';
+      default: return 'Most Recent';
+    }
+  };
+
+  const getTimeLabel = (time: TimeFilter): string => {
+    switch (time) {
+      case 'all': return 'All Time';
+      case 'today': return 'Today';
+      case 'week': return 'This Week';
+      case 'month': return 'This Month';
+      default: return 'All Time';
+    }
+  };
+
+  const getCategoryLabel = (category: string): string => {
+    return category === 'all' ? 'All Categories' : category;
+  };
+
+  // Clear all filters
+  const clearAllFilters = () => {
+    setSearchQuery('');
+    setSearchInput('');
+    setSelectedCategory('all');
+    setSortBy('newest');
+    setTimeFilter('all');
+    setStarFilter(false);
+  };
+
+  // Check if any filters are active
+  const hasActiveFilters = () => {
+    return searchQuery.trim() !== '' || 
+           selectedCategory !== 'all' || 
+           sortBy !== 'newest' || 
+           timeFilter !== 'all' || 
+           starFilter;
+  };
+
+  // Handle search on Enter key press
+  const handleSearchKeyPress = (e: React.KeyboardEvent<HTMLInputElement>) => {
+    if (e.key === 'Enter') {
+      setSearchQuery(searchInput);
+    }
+  };
+
+  // Handle search input change
+  const handleSearchInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    setSearchInput(e.target.value);
+  };
+
+  // Clear search
+  const clearSearch = () => {
+    setSearchInput('');
+    setSearchQuery('');
+  };
+
+  // Color functions for stance-based styling (matching DebateEngine)
+  const interpolateColor = (value: number): string => {
+    const colors = {
+      blue: [30,144,255],    // blue-300 (very bright blue)
+      gray: [75, 75, 75],     // neutral gray
+      purple: [192, 132, 252],    // purple-400 (bright purple)
+    };
+
+    let r, g, b;
+    if (value <= 0) {
+      // Interpolate between blue and gray
+      const t = (value + 1); // -1 to 0 -> 0 to 1
+      r = colors.blue[0] + (colors.gray[0] - colors.blue[0]) * t;
+      g = colors.blue[1] + (colors.gray[1] - colors.blue[1]) * t;
+      b = colors.blue[2] + (colors.gray[2] - colors.blue[2]) * t;
+    } else {
+      // Interpolate between gray and purple
+      const t = value; // 0 to 1
+      r = colors.gray[0] + (colors.purple[0] - colors.gray[0]) * t;
+      g = colors.gray[1] + (colors.purple[1] - colors.gray[1]) * t;
+      b = colors.gray[2] + (colors.purple[2] - colors.gray[2]) * t;
+    }
+
+    return `rgb(${Math.round(r)}, ${Math.round(g)}, ${Math.round(b)})`;
+  };
+
+  const getStanceColor = (value: number): string => {
+    return interpolateColor(value);
+  };
+
+  const getStanceBackgroundColor = (value: number): string => {
+    const color = interpolateColor(value);
+    return color.replace('rgb', 'rgba').replace(')', ', 0.2)');
+  };
+
+  const getRoundTitle = (roundNumber: number): { title: string; description: string } => {
+    switch (roundNumber) {
+      case 1:
+        return {
+          title: "Round 1: Constructive Arguments",
+          description: "Each speaker presents their initial position with strongest possible arguments."
+        };
+      case 2:
+        return {
+          title: "Round 2: Rebuttal",
+          description: "Speakers address opposing arguments and strengthen their positions."
+        };
+      case 3:
+        return {
+          title: "Round 3: Summary",
+          description: "Final statements incorporating and addressing previous points."
+        };
+      default:
+        return {
+          title: `Round ${roundNumber}`,
+          description: ""
+        };
+    }
+  };
+
+  // Portal-based Dropdown component
+  const FilterDropdown = ({ 
+    label, 
+    value, 
+    options, 
+    onChange, 
+    isOpen, 
+    onToggle 
+  }: {
+    label: string;
+    value: string;
+    options: { value: string; label: string }[];
+    onChange: (value: string) => void;
+    isOpen: boolean;
+    onToggle: () => void;
+  }) => {
+    const buttonRef = useRef<HTMLButtonElement>(null);
+    const [dropdownPosition, setDropdownPosition] = useState({ top: 0, left: 0, width: 0 });
+
+    useEffect(() => {
+      if (isOpen && buttonRef.current) {
+        const updatePosition = () => {
+          if (buttonRef.current) {
+            const rect = buttonRef.current.getBoundingClientRect();
+            setDropdownPosition({
+              top: rect.bottom + 4,
+              left: rect.left,
+              width: rect.width
+            });
+          }
+        };
+
+        // Initial position
+        updatePosition();
+
+        // Update position on scroll and resize
+        window.addEventListener('scroll', updatePosition, true);
+        window.addEventListener('resize', updatePosition);
+
+        return () => {
+          window.removeEventListener('scroll', updatePosition, true);
+          window.removeEventListener('resize', updatePosition);
+        };
+      }
+    }, [isOpen]);
+
+    const dropdownContent = isOpen ? (
+      <div 
+        className="fixed bg-gray-800 border border-gray-600 rounded-lg shadow-lg z-[9999]"
+        style={{
+          top: dropdownPosition.top,
+          left: dropdownPosition.left,
+          width: dropdownPosition.width
+        }}
+      >
+        {options.map((option) => (
+          <button
+            key={option.value}
+            onClick={(e) => {
+              e.stopPropagation();
+              onChange(option.value);
+              onToggle();
+            }}
+            className={`w-full px-4 py-2 text-left text-sm hover:bg-gray-700 transition-colors first:rounded-t-lg last:rounded-b-lg ${
+              value === option.value ? 'text-blue-400 bg-gray-700/50' : 'text-gray-300'
+            }`}
+          >
+            {option.label}
+          </button>
+        ))}
+      </div>
+    ) : null;
+
+    return (
+      <div className="relative dropdown-container">
+        <button
+          ref={buttonRef}
+          onClick={(e) => {
+            e.stopPropagation();
+            onToggle();
+          }}
+          className="flex items-center justify-between w-full px-4 py-2 bg-gray-700/50 border border-gray-600 rounded-lg text-gray-300 hover:bg-gray-600/50 transition-colors"
+        >
+          <span className="text-sm">{label}</span>
+          <ChevronDownIcon className={`h-4 w-4 transition-transform ${isOpen ? 'rotate-180' : ''}`} />
+        </button>
+        
+        {dropdownContent && createPortal(dropdownContent, document.body)}
+      </div>
+    );
+  };
 
   const toggleStarDebate = async (debateId: string) => {
     setStarredDebates(prev => {
@@ -416,140 +655,181 @@ const CommunityLibrary: React.FC = () => {
   if (loading) {
     return (
       <div className="min-h-screen bg-gray-900 p-6">
-        <div className="max-w-7xl mx-auto space-y-8">
-          {/* Filters */}
+        <div className="max-w-7xl mx-auto space-y-4">
+          {/* Modern Filter System */}
           <div className="bg-gray-800/30 rounded-lg p-4 backdrop-blur-sm border border-gray-700/50">
-            <div className="flex flex-col sm:flex-row gap-6">
-              {/* Categories */}
-              <div className="flex-1">
-                <div className="flex items-center gap-3 mb-2">
-                  <h3 className="text-sm font-medium text-gray-300 uppercase tracking-wider">Categories</h3>
-                  <div className="flex-1 border-b border-gray-700/50"></div>
-                </div>
-                <div className="flex flex-wrap gap-2">
+            {/* Search Bar */}
+            <div className="relative mb-4">
+              <MagnifyingGlassIcon className="absolute left-3 top-1/2 transform -translate-y-1/2 h-5 w-5 text-gray-400" />
+              <input
+                type="text"
+                placeholder="Find discourse on any topic or category..."
+                value={searchInput}
+                onChange={handleSearchInputChange}
+                onKeyPress={handleSearchKeyPress}
+                className="w-full pl-10 pr-4 py-3 bg-gray-700/50 border border-gray-600 rounded-lg text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+              />
+              {(searchQuery || searchInput) && (
                   <button
-                    key="all"
-                    onClick={() => setSelectedCategory('all')}
-                    className={`px-3 py-1 rounded-full text-sm transition-colors ${
-                      selectedCategory === 'all'
-                        ? 'bg-blue-600 text-white'
-                        : 'bg-gray-700/50 text-gray-300 hover:bg-gray-600/50'
-                    }`}
-                  >
-                    All
+                  onClick={clearSearch}
+                  className="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-400 hover:text-white"
+                >
+                  <XMarkIcon className="h-5 w-5" />
                   </button>
-                  {categories.map((category) => (
+              )}
+            </div>
+
+            {/* Filter Controls */}
+            <div className="grid grid-cols-1 md:grid-cols-4 gap-4 mb-4">
+              {/* Category Filter */}
+              <FilterDropdown
+                label={getCategoryLabel(selectedCategory)}
+                value={selectedCategory}
+                options={[
+                  { value: 'all', label: 'All Categories' },
+                  ...categories.map(cat => ({ value: cat, label: cat }))
+                ]}
+                onChange={setSelectedCategory}
+                isOpen={showCategoryDropdown}
+                onToggle={() => {
+                  setShowCategoryDropdown(!showCategoryDropdown);
+                  setShowSortDropdown(false);
+                  setShowTimeDropdown(false);
+                }}
+              />
+
+              {/* Sort Filter */}
+              <FilterDropdown
+                label={getSortLabel(sortBy)}
+                value={sortBy}
+                options={[
+                  { value: 'newest', label: 'Most Recent' },
+                  { value: 'popular', label: 'Most Popular' },
+                  { value: 'controversial', label: 'Most Controversial' }
+                ]}
+                onChange={(value) => setSortBy(value as SortOption)}
+                isOpen={showSortDropdown}
+                onToggle={() => {
+                  setShowSortDropdown(!showSortDropdown);
+                  setShowCategoryDropdown(false);
+                  setShowTimeDropdown(false);
+                }}
+              />
+
+              {/* Time Filter */}
+              <FilterDropdown
+                label={getTimeLabel(timeFilter)}
+                value={timeFilter}
+                options={[
+                  { value: 'all', label: 'All Time' },
+                  { value: 'today', label: 'Today' },
+                  { value: 'week', label: 'This Week' },
+                  { value: 'month', label: 'This Month' }
+                ]}
+                onChange={(value) => setTimeFilter(value as TimeFilter)}
+                isOpen={showTimeDropdown}
+                onToggle={() => {
+                  setShowTimeDropdown(!showTimeDropdown);
+                  setShowCategoryDropdown(false);
+                  setShowSortDropdown(false);
+                }}
+              />
+
+              {/* Star Filter */}
+              <div className="flex items-center">
                     <button
-                      key={category}
-                      onClick={() => setSelectedCategory(category)}
-                      className={`px-3 py-1 rounded-full text-sm transition-colors ${
-                        selectedCategory === category
-                          ? 'bg-blue-600 text-white'
-                          : 'bg-gray-700/50 text-gray-300 hover:bg-gray-600/50'
-                      }`}
-                    >
-                      {category}
+                  onClick={() => setStarFilter(!starFilter)}
+                  className={`flex items-center justify-center w-full px-4 py-2 rounded-lg transition-colors ${
+                    starFilter 
+                      ? 'bg-yellow-600/20 text-yellow-400 border border-yellow-500/30' 
+                      : 'bg-gray-700/50 text-gray-300 border border-gray-600 hover:bg-gray-600/50'
+                  }`}
+                >
+                  <FourPointStarIcon className="h-4 w-4 mr-2" />
+                  <span className="text-sm">Starred Only</span>
                     </button>
-                  ))}
                 </div>
               </div>
 
-              {/* Sort and Time Options */}
-              <div className="sm:border-l sm:pl-6 border-gray-700/50">
-                <div className="flex items-center gap-3 mb-2">
-                  <h3 className="text-sm font-medium text-gray-300 uppercase tracking-wider">Sort By</h3>
-                  <div className="flex-1 border-b border-gray-700/50"></div>
-                </div>
-                <div className="flex flex-wrap gap-2">
+            {/* Active Filters Display */}
+            {hasActiveFilters() && (
+              <div className="flex flex-wrap items-center gap-2 pt-4 border-t border-gray-700/50">
+                <span className="text-sm text-gray-400">Active filters:</span>
+                {searchQuery && (
+                  <span className="inline-flex items-center px-3 py-1 rounded-full text-xs bg-blue-600/20 text-blue-400 border border-blue-500/30">
+                    Search: "{searchQuery}"
                   <button
-                    onClick={() => setSortBy('popular')}
-                    className={`px-3 py-1 rounded-lg transition-colors ${
-                      sortBy === 'popular'
-                        ? 'bg-blue-600 text-white'
-                        : 'bg-gray-700/50 text-gray-300 hover:bg-gray-600/50'
-                    }`}
-                  >
-                    Most Popular
+                      onClick={() => setSearchQuery('')}
+                      className="ml-2 hover:text-blue-300"
+                    >
+                      <XMarkIcon className="h-3 w-3" />
                   </button>
+                  </span>
+                )}
+                {selectedCategory !== 'all' && (
+                  <span className="inline-flex items-center px-3 py-1 rounded-full text-xs bg-blue-600/20 text-blue-400 border border-blue-500/30">
+                    Category: {selectedCategory}
                   <button
-                    onClick={() => setSortBy('newest')}
-                    className={`px-3 py-1 rounded-lg transition-colors ${
-                      sortBy === 'newest'
-                        ? 'bg-blue-600 text-white'
-                        : 'bg-gray-700/50 text-gray-300 hover:bg-gray-600/50'
-                    }`}
-                  >
-                    Most Recent
+                      onClick={() => setSelectedCategory('all')}
+                      className="ml-2 hover:text-blue-300"
+                    >
+                      <XMarkIcon className="h-3 w-3" />
                   </button>
+                  </span>
+                )}
+                {sortBy !== 'newest' && (
+                  <span className="inline-flex items-center px-3 py-1 rounded-full text-xs bg-blue-600/20 text-blue-400 border border-blue-500/30">
+                    Sort: {getSortLabel(sortBy)}
                   <button
-                    onClick={() => setSortBy('controversial')}
-                    className={`px-3 py-1 rounded-lg transition-colors ${
-                      sortBy === 'controversial'
-                        ? 'bg-blue-600 text-white'
-                        : 'bg-gray-700/50 text-gray-300 hover:bg-gray-600/50'
-                    }`}
-                  >
-                    Most Controversial
+                      onClick={() => setSortBy('newest')}
+                      className="ml-2 hover:text-blue-300"
+                    >
+                      <XMarkIcon className="h-3 w-3" />
                   </button>
-                </div>
-
-                {/* Time Filter */}
-                <div className="mt-4">
-                  <div className="flex items-center gap-3 mb-2">
-                    <h3 className="text-sm font-medium text-gray-300 uppercase tracking-wider">Time Period</h3>
-                    <div className="flex-1 border-b border-gray-700/50"></div>
-                  </div>
-                  <div className="flex flex-wrap gap-2">
+                  </span>
+                )}
+                {timeFilter !== 'all' && (
+                  <span className="inline-flex items-center px-3 py-1 rounded-full text-xs bg-blue-600/20 text-blue-400 border border-blue-500/30">
+                    Time: {getTimeLabel(timeFilter)}
                     <button
                       onClick={() => setTimeFilter('all')}
-                      className={`px-3 py-1 rounded-lg transition-colors ${
-                        timeFilter === 'all'
-                          ? 'bg-blue-600 text-white'
-                          : 'bg-gray-700/50 text-gray-300 hover:bg-gray-600/50'
-                      }`}
+                      className="ml-2 hover:text-blue-300"
                     >
-                      All Time
+                      <XMarkIcon className="h-3 w-3" />
                     </button>
+                  </span>
+                )}
+                {starFilter && (
+                  <span className="inline-flex items-center px-3 py-1 rounded-full text-xs bg-yellow-600/20 text-yellow-400 border border-yellow-500/30">
+                    Starred Only
                     <button
-                      onClick={() => setTimeFilter('today')}
-                      className={`px-3 py-1 rounded-lg transition-colors ${
-                        timeFilter === 'today'
-                          ? 'bg-blue-600 text-white'
-                          : 'bg-gray-700/50 text-gray-300 hover:bg-gray-600/50'
-                      }`}
+                      onClick={() => setStarFilter(false)}
+                      className="ml-2 hover:text-yellow-300"
                     >
-                      Today
+                      <XMarkIcon className="h-3 w-3" />
                     </button>
+                  </span>
+                )}
                     <button
-                      onClick={() => setTimeFilter('week')}
-                      className={`px-3 py-1 rounded-lg transition-colors ${
-                        timeFilter === 'week'
-                          ? 'bg-blue-600 text-white'
-                          : 'bg-gray-700/50 text-gray-300 hover:bg-gray-600/50'
-                      }`}
-                    >
-                      This Week
-                    </button>
-                    <button
-                      onClick={() => setTimeFilter('month')}
-                      className={`px-3 py-1 rounded-lg transition-colors ${
-                        timeFilter === 'month'
-                          ? 'bg-blue-600 text-white'
-                          : 'bg-gray-700/50 text-gray-300 hover:bg-gray-600/50'
-                      }`}
-                    >
-                      This Month
+                  onClick={clearAllFilters}
+                  className="text-xs text-gray-400 hover:text-white underline"
+                >
+                  Clear all
                     </button>
                   </div>
-                </div>
-              </div>
-            </div>
+            )}
           </div>
 
           {/* Loading indicator */}
-          <div className="flex items-center justify-center py-12">
-            <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-500"></div>
-          </div>
+          {showLoadingIcon && (
+            <div className="flex items-center justify-center py-12">
+              <img 
+                src="/android-chrome-512x512.png" 
+                alt="Discourse Graph" 
+                className="w-12 h-12 animate-spin"
+              />
+            </div>
+          )}
         </div>
       </div>
     );
@@ -558,134 +838,169 @@ const CommunityLibrary: React.FC = () => {
   if (error) {
     return (
       <div className="min-h-screen bg-gray-900 p-6">
-        <div className="max-w-7xl mx-auto space-y-8">
-          {/* Keep the filters visible during error */}
+        <div className="max-w-7xl mx-auto space-y-4">
+          {/* Modern Filter System */}
           <div className="bg-gray-800/30 rounded-lg p-4 backdrop-blur-sm border border-gray-700/50">
-            <div className="flex flex-col sm:flex-row gap-6">
-              {/* Categories */}
-              <div className="flex-1">
-                <div className="flex items-center gap-3 mb-2">
-                  <h3 className="text-sm font-medium text-gray-300 uppercase tracking-wider">Categories</h3>
-                  <div className="flex-1 border-b border-gray-700/50"></div>
-                </div>
-                <div className="flex flex-wrap gap-2">
+            {/* Search Bar */}
+            <div className="relative mb-4">
+              <MagnifyingGlassIcon className="absolute left-3 top-1/2 transform -translate-y-1/2 h-5 w-5 text-gray-400" />
+                          <input
+              type="text"
+              placeholder="Find discourse on any topic or category... "
+              value={searchInput}
+              onChange={handleSearchInputChange}
+              onKeyPress={handleSearchKeyPress}
+              className="w-full pl-10 pr-4 py-3 bg-gray-700/50 border border-gray-600 rounded-lg text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+            />
+            {(searchQuery || searchInput) && (
                   <button
-                    key="all"
-                    onClick={() => setSelectedCategory('all')}
-                    className={`px-3 py-1 rounded-full text-sm transition-colors ${
-                      selectedCategory === 'all'
-                        ? 'bg-blue-600 text-white'
-                        : 'bg-gray-700/50 text-gray-300 hover:bg-gray-600/50'
-                    }`}
-                  >
-                    All
+                onClick={clearSearch}
+                className="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-400 hover:text-white"
+              >
+                <XMarkIcon className="h-5 w-5" />
                   </button>
-                  {categories.map((category) => (
+            )}
+            </div>
+
+            {/* Filter Controls */}
+            <div className="grid grid-cols-1 md:grid-cols-4 gap-4 mb-4">
+              {/* Category Filter */}
+              <FilterDropdown
+                label={getCategoryLabel(selectedCategory)}
+                value={selectedCategory}
+                options={[
+                  { value: 'all', label: 'All Categories' },
+                  ...categories.map(cat => ({ value: cat, label: cat }))
+                ]}
+                onChange={setSelectedCategory}
+                isOpen={showCategoryDropdown}
+                onToggle={() => {
+                  setShowCategoryDropdown(!showCategoryDropdown);
+                  setShowSortDropdown(false);
+                  setShowTimeDropdown(false);
+                }}
+              />
+
+              {/* Sort Filter */}
+              <FilterDropdown
+                label={getSortLabel(sortBy)}
+                value={sortBy}
+                options={[
+                  { value: 'newest', label: 'Most Recent' },
+                  { value: 'popular', label: 'Most Popular' },
+                  { value: 'controversial', label: 'Most Controversial' }
+                ]}
+                onChange={(value) => setSortBy(value as SortOption)}
+                isOpen={showSortDropdown}
+                onToggle={() => {
+                  setShowSortDropdown(!showSortDropdown);
+                  setShowCategoryDropdown(false);
+                  setShowTimeDropdown(false);
+                }}
+              />
+
+              {/* Time Filter */}
+              <FilterDropdown
+                label={getTimeLabel(timeFilter)}
+                value={timeFilter}
+                options={[
+                  { value: 'all', label: 'All Time' },
+                  { value: 'today', label: 'Today' },
+                  { value: 'week', label: 'This Week' },
+                  { value: 'month', label: 'This Month' }
+                ]}
+                onChange={(value) => setTimeFilter(value as TimeFilter)}
+                isOpen={showTimeDropdown}
+                onToggle={() => {
+                  setShowTimeDropdown(!showTimeDropdown);
+                  setShowCategoryDropdown(false);
+                  setShowSortDropdown(false);
+                }}
+              />
+
+              {/* Star Filter */}
+              <div className="flex items-center">
                     <button
-                      key={category}
-                      onClick={() => setSelectedCategory(category)}
-                      className={`px-3 py-1 rounded-full text-sm transition-colors ${
-                        selectedCategory === category
-                          ? 'bg-blue-600 text-white'
-                          : 'bg-gray-700/50 text-gray-300 hover:bg-gray-600/50'
-                      }`}
-                    >
-                      {category}
+                  onClick={() => setStarFilter(!starFilter)}
+                  className={`flex items-center justify-center w-full px-4 py-2 rounded-lg transition-colors ${
+                    starFilter 
+                      ? 'bg-yellow-600/20 text-yellow-400 border border-yellow-500/30' 
+                      : 'bg-gray-700/50 text-gray-300 border border-gray-600 hover:bg-gray-600/50'
+                  }`}
+                >
+                  <FourPointStarIcon className="h-4 w-4 mr-2" />
+                  <span className="text-sm">Starred Only</span>
                     </button>
-                  ))}
                 </div>
               </div>
 
-              {/* Sort and Time Options */}
-              <div className="sm:border-l sm:pl-6 border-gray-700/50">
-                <div className="flex items-center gap-3 mb-2">
-                  <h3 className="text-sm font-medium text-gray-300 uppercase tracking-wider">Sort By</h3>
-                  <div className="flex-1 border-b border-gray-700/50"></div>
-                </div>
-                <div className="flex flex-wrap gap-2">
+            {/* Active Filters Display */}
+            {hasActiveFilters() && (
+              <div className="flex flex-wrap items-center gap-2 pt-4 border-t border-gray-700/50">
+                <span className="text-sm text-gray-400">Active filters:</span>
+                {searchQuery && (
+                  <span className="inline-flex items-center px-3 py-1 rounded-full text-xs bg-blue-600/20 text-blue-400 border border-blue-500/30">
+                    Search: "{searchQuery}"
                   <button
-                    onClick={() => setSortBy('popular')}
-                    className={`px-3 py-1 rounded-lg transition-colors ${
-                      sortBy === 'popular'
-                        ? 'bg-blue-600 text-white'
-                        : 'bg-gray-700/50 text-gray-300 hover:bg-gray-600/50'
-                    }`}
-                  >
-                    Most Popular
+                      onClick={() => setSearchQuery('')}
+                      className="ml-2 hover:text-blue-300"
+                    >
+                      <XMarkIcon className="h-3 w-3" />
                   </button>
+                  </span>
+                )}
+                {selectedCategory !== 'all' && (
+                  <span className="inline-flex items-center px-3 py-1 rounded-full text-xs bg-blue-600/20 text-blue-400 border border-blue-500/30">
+                    Category: {selectedCategory}
                   <button
-                    onClick={() => setSortBy('newest')}
-                    className={`px-3 py-1 rounded-lg transition-colors ${
-                      sortBy === 'newest'
-                        ? 'bg-blue-600 text-white'
-                        : 'bg-gray-700/50 text-gray-300 hover:bg-gray-600/50'
-                    }`}
-                  >
-                    Most Recent
+                      onClick={() => setSelectedCategory('all')}
+                      className="ml-2 hover:text-blue-300"
+                    >
+                      <XMarkIcon className="h-3 w-3" />
                   </button>
+                  </span>
+                )}
+                {sortBy !== 'newest' && (
+                  <span className="inline-flex items-center px-3 py-1 rounded-full text-xs bg-blue-600/20 text-blue-400 border border-blue-500/30">
+                    Sort: {getSortLabel(sortBy)}
                   <button
-                    onClick={() => setSortBy('controversial')}
-                    className={`px-3 py-1 rounded-lg transition-colors ${
-                      sortBy === 'controversial'
-                        ? 'bg-blue-600 text-white'
-                        : 'bg-gray-700/50 text-gray-300 hover:bg-gray-600/50'
-                    }`}
-                  >
-                    Most Controversial
+                      onClick={() => setSortBy('newest')}
+                      className="ml-2 hover:text-blue-300"
+                    >
+                      <XMarkIcon className="h-3 w-3" />
                   </button>
-                </div>
-
-                {/* Time Filter */}
-                <div className="mt-4">
-                  <div className="flex items-center gap-3 mb-2">
-                    <h3 className="text-sm font-medium text-gray-300 uppercase tracking-wider">Time Period</h3>
-                    <div className="flex-1 border-b border-gray-700/50"></div>
-                  </div>
-                  <div className="flex flex-wrap gap-2">
+                  </span>
+                )}
+                {timeFilter !== 'all' && (
+                  <span className="inline-flex items-center px-3 py-1 rounded-full text-xs bg-blue-600/20 text-blue-400 border border-blue-500/30">
+                    Time: {getTimeLabel(timeFilter)}
                     <button
                       onClick={() => setTimeFilter('all')}
-                      className={`px-3 py-1 rounded-lg transition-colors ${
-                        timeFilter === 'all'
-                          ? 'bg-blue-600 text-white'
-                          : 'bg-gray-700/50 text-gray-300 hover:bg-gray-600/50'
-                      }`}
+                      className="ml-2 hover:text-blue-300"
                     >
-                      All Time
+                      <XMarkIcon className="h-3 w-3" />
                     </button>
+                  </span>
+                )}
+                {starFilter && (
+                  <span className="inline-flex items-center px-3 py-1 rounded-full text-xs bg-yellow-600/20 text-yellow-400 border border-yellow-500/30">
+                    Starred Only
                     <button
-                      onClick={() => setTimeFilter('today')}
-                      className={`px-3 py-1 rounded-lg transition-colors ${
-                        timeFilter === 'today'
-                          ? 'bg-blue-600 text-white'
-                          : 'bg-gray-700/50 text-gray-300 hover:bg-gray-600/50'
-                      }`}
+                      onClick={() => setStarFilter(false)}
+                      className="ml-2 hover:text-yellow-300"
                     >
-                      Today
+                      <XMarkIcon className="h-3 w-3" />
                     </button>
+                  </span>
+                )}
                     <button
-                      onClick={() => setTimeFilter('week')}
-                      className={`px-3 py-1 rounded-lg transition-colors ${
-                        timeFilter === 'week'
-                          ? 'bg-blue-600 text-white'
-                          : 'bg-gray-700/50 text-gray-300 hover:bg-gray-600/50'
-                      }`}
-                    >
-                      This Week
-                    </button>
-                    <button
-                      onClick={() => setTimeFilter('month')}
-                      className={`px-3 py-1 rounded-lg transition-colors ${
-                        timeFilter === 'month'
-                          ? 'bg-blue-600 text-white'
-                          : 'bg-gray-700/50 text-gray-300 hover:bg-gray-600/50'
-                      }`}
-                    >
-                      This Month
+                  onClick={clearAllFilters}
+                  className="text-xs text-gray-400 hover:text-white underline"
+                >
+                  Clear all
                     </button>
                   </div>
-                </div>
-              </div>
-            </div>
+            )}
           </div>
 
           {/* Error message */}
@@ -703,14 +1018,14 @@ const CommunityLibrary: React.FC = () => {
     );
   }
 
-  // Get unique categories from all debates
-  const uniqueCategories = Array.from(
-    new Set(debates.flatMap(debate => debate.categories))
-  ).sort();
+  // Get unique categories from all debates (currently unused)
+  // const uniqueCategories = Array.from(
+  //   new Set(debates.flatMap(debate => debate.categories))
+  // ).sort();
 
   return (
     <div className="min-h-screen bg-gray-900 p-6">
-      <div className="max-w-7xl mx-auto space-y-8">
+      <div className="max-w-7xl mx-auto space-y-4">
         {/* Login Modal */}
         <Modal isOpen={showLoginModal} onClose={() => setShowLoginModal(false)}>
           <div className="text-center text-white">
@@ -729,157 +1044,184 @@ const CommunityLibrary: React.FC = () => {
           </div>
         </Modal>
 
-        {/* Filters */}
+        {/* Modern Filter System */}
         <div className="bg-gray-800/30 rounded-lg p-4 backdrop-blur-sm border border-gray-700/50">
-          <div className="flex flex-col sm:flex-row gap-6">
-            {/* Categories */}
-            <div className="flex-1">
-              <div className="flex items-center gap-3 mb-2">
-                <h3 className="text-sm font-medium text-gray-300 uppercase tracking-wider">Categories</h3>
-                <div className="flex-1 border-b border-gray-700/50"></div>
-              </div>
-              <div className="flex flex-wrap gap-2">
+          {/* Search Bar */}
+          <div className="relative mb-4">
+            <MagnifyingGlassIcon className="absolute left-3 top-1/2 transform -translate-y-1/2 h-5 w-5 text-gray-400" />
+            <input
+              type="text"
+              placeholder="Find discourse on any topic or category... "
+              value={searchInput}
+              onChange={handleSearchInputChange}
+              onKeyPress={handleSearchKeyPress}
+              className="w-full pl-10 pr-4 py-3 bg-gray-700/50 border border-gray-600 rounded-lg text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+            />
+            {(searchQuery || searchInput) && (
                 <button
-                  key="all"
-                  onClick={() => setSelectedCategory('all')}
-                  className={`px-3 py-1 rounded-full text-sm transition-colors ${
-                    selectedCategory === 'all'
-                      ? 'bg-blue-600 text-white'
-                      : 'bg-gray-700/50 text-gray-300 hover:bg-gray-600/50'
-                  }`}
-                >
-                  All
+                onClick={clearSearch}
+                className="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-400 hover:text-white"
+              >
+                <XMarkIcon className="h-5 w-5" />
                 </button>
-                {categories.map((category) => (
+            )}
+          </div>
+
+          {/* Filter Controls */}
+          <div className="grid grid-cols-1 md:grid-cols-4 gap-4 mb-4">
+            {/* Category Filter */}
+            <FilterDropdown
+              label={getCategoryLabel(selectedCategory)}
+              value={selectedCategory}
+              options={[
+                { value: 'all', label: 'All Categories' },
+                ...categories.map(cat => ({ value: cat, label: cat }))
+              ]}
+              onChange={setSelectedCategory}
+              isOpen={showCategoryDropdown}
+              onToggle={() => {
+                setShowCategoryDropdown(!showCategoryDropdown);
+                setShowSortDropdown(false);
+                setShowTimeDropdown(false);
+              }}
+            />
+
+            {/* Sort Filter */}
+            <FilterDropdown
+              label={getSortLabel(sortBy)}
+              value={sortBy}
+              options={[
+                { value: 'newest', label: 'Most Recent' },
+                { value: 'popular', label: 'Most Popular' },
+                { value: 'controversial', label: 'Most Controversial' }
+              ]}
+              onChange={(value) => setSortBy(value as SortOption)}
+              isOpen={showSortDropdown}
+              onToggle={() => {
+                setShowSortDropdown(!showSortDropdown);
+                setShowCategoryDropdown(false);
+                setShowTimeDropdown(false);
+              }}
+            />
+
+            {/* Time Filter */}
+            <FilterDropdown
+              label={getTimeLabel(timeFilter)}
+              value={timeFilter}
+              options={[
+                { value: 'all', label: 'All Time' },
+                { value: 'today', label: 'Today' },
+                { value: 'week', label: 'This Week' },
+                { value: 'month', label: 'This Month' }
+              ]}
+              onChange={(value) => setTimeFilter(value as TimeFilter)}
+              isOpen={showTimeDropdown}
+              onToggle={() => {
+                setShowTimeDropdown(!showTimeDropdown);
+                setShowCategoryDropdown(false);
+                setShowSortDropdown(false);
+              }}
+            />
+
+            {/* Star Filter */}
+            <div className="flex items-center">
                   <button
-                    key={category}
-                    onClick={() => setSelectedCategory(category)}
-                    className={`px-3 py-1 rounded-full text-sm transition-colors ${
-                      selectedCategory === category
-                        ? 'bg-blue-600 text-white'
-                        : 'bg-gray-700/50 text-gray-300 hover:bg-gray-600/50'
-                    }`}
-                  >
-                    {category}
+                onClick={() => setStarFilter(!starFilter)}
+                className={`flex items-center justify-center w-full px-4 py-2 rounded-lg transition-colors ${
+                  starFilter 
+                    ? 'bg-yellow-600/20 text-yellow-400 border border-yellow-500/30' 
+                    : 'bg-gray-700/50 text-gray-300 border border-gray-600 hover:bg-gray-600/50'
+                }`}
+              >
+                <FourPointStarIcon className="h-4 w-4 mr-2" />
+                <span className="text-sm">Starred Only</span>
                   </button>
-                ))}
               </div>
             </div>
 
-            {/* Sort and Time Options */}
-            <div className="sm:border-l sm:pl-6 border-gray-700/50">
-              <div className="flex items-center gap-3 mb-2">
-                <h3 className="text-sm font-medium text-gray-300 uppercase tracking-wider">Sort By</h3>
-                <div className="flex-1 border-b border-gray-700/50"></div>
-              </div>
-              <div className="flex flex-wrap gap-2">
+          {/* Active Filters Display */}
+          {hasActiveFilters() && (
+            <div className="flex flex-wrap items-center gap-2 pt-4 border-t border-gray-700/50">
+              <span className="text-sm text-gray-400">Active filters:</span>
+              {searchQuery && (
+                <span className="inline-flex items-center px-3 py-1 rounded-full text-xs bg-blue-600/20 text-blue-400 border border-blue-500/30">
+                  Search: "{searchQuery}"
                 <button
-                  onClick={() => setSortBy('popular')}
-                  className={`px-3 py-1 rounded-lg transition-colors ${
-                    sortBy === 'popular'
-                      ? 'bg-blue-600 text-white'
-                      : 'bg-gray-700/50 text-gray-300 hover:bg-gray-600/50'
-                  }`}
-                >
-                  Most Popular
+                    onClick={clearSearch}
+                    className="ml-2 hover:text-blue-300"
+                  >
+                    <XMarkIcon className="h-3 w-3" />
                 </button>
+                </span>
+              )}
+              {selectedCategory !== 'all' && (
+                <span className="inline-flex items-center px-3 py-1 rounded-full text-xs bg-blue-600/20 text-blue-400 border border-blue-500/30">
+                  Category: {selectedCategory}
                 <button
-                  onClick={() => setSortBy('newest')}
-                  className={`px-3 py-1 rounded-lg transition-colors ${
-                    sortBy === 'newest'
-                      ? 'bg-blue-600 text-white'
-                      : 'bg-gray-700/50 text-gray-300 hover:bg-gray-600/50'
-                  }`}
-                >
-                  Most Recent
+                    onClick={() => setSelectedCategory('all')}
+                    className="ml-2 hover:text-blue-300"
+                  >
+                    <XMarkIcon className="h-3 w-3" />
                 </button>
+                </span>
+              )}
+              {sortBy !== 'newest' && (
+                <span className="inline-flex items-center px-3 py-1 rounded-full text-xs bg-blue-600/20 text-blue-400 border border-blue-500/30">
+                  Sort: {getSortLabel(sortBy)}
                 <button
-                  onClick={() => setSortBy('controversial')}
-                  className={`px-3 py-1 rounded-lg transition-colors ${
-                    sortBy === 'controversial'
-                      ? 'bg-blue-600 text-white'
-                      : 'bg-gray-700/50 text-gray-300 hover:bg-gray-600/50'
-                  }`}
-                >
-                  Most Controversial
+                    onClick={() => setSortBy('newest')}
+                    className="ml-2 hover:text-blue-300"
+                  >
+                    <XMarkIcon className="h-3 w-3" />
                 </button>
-              </div>
-
-              {/* Time Filter */}
-              <div className="mt-4">
-                <div className="flex items-center gap-3 mb-2">
-                  <h3 className="text-sm font-medium text-gray-300 uppercase tracking-wider">Time Period</h3>
-                  <div className="flex-1 border-b border-gray-700/50"></div>
-                </div>
-                <div className="flex flex-wrap gap-2">
+                </span>
+              )}
+              {timeFilter !== 'all' && (
+                <span className="inline-flex items-center px-3 py-1 rounded-full text-xs bg-blue-600/20 text-blue-400 border border-blue-500/30">
+                  Time: {getTimeLabel(timeFilter)}
                   <button
                     onClick={() => setTimeFilter('all')}
-                    className={`px-3 py-1 rounded-lg transition-colors ${
-                      timeFilter === 'all'
-                        ? 'bg-blue-600 text-white'
-                        : 'bg-gray-700/50 text-gray-300 hover:bg-gray-600/50'
-                    }`}
+                    className="ml-2 hover:text-blue-300"
                   >
-                    All Time
+                    <XMarkIcon className="h-3 w-3" />
                   </button>
+                </span>
+              )}
+              {starFilter && (
+                <span className="inline-flex items-center px-3 py-1 rounded-full text-xs bg-yellow-600/20 text-yellow-400 border border-yellow-500/30">
+                  Starred Only
                   <button
-                    onClick={() => setTimeFilter('today')}
-                    className={`px-3 py-1 rounded-lg transition-colors ${
-                      timeFilter === 'today'
-                        ? 'bg-blue-600 text-white'
-                        : 'bg-gray-700/50 text-gray-300 hover:bg-gray-600/50'
-                    }`}
+                    onClick={() => setStarFilter(false)}
+                    className="ml-2 hover:text-yellow-300"
                   >
-                    Today
+                    <XMarkIcon className="h-3 w-3" />
                   </button>
+                </span>
+              )}
                   <button
-                    onClick={() => setTimeFilter('week')}
-                    className={`px-3 py-1 rounded-lg transition-colors ${
-                      timeFilter === 'week'
-                        ? 'bg-blue-600 text-white'
-                        : 'bg-gray-700/50 text-gray-300 hover:bg-gray-600/50'
-                    }`}
-                  >
-                    This Week
-                  </button>
-                  <button
-                    onClick={() => setTimeFilter('month')}
-                    className={`px-3 py-1 rounded-lg transition-colors ${
-                      timeFilter === 'month'
-                        ? 'bg-blue-600 text-white'
-                        : 'bg-gray-700/50 text-gray-300 hover:bg-gray-600/50'
-                    }`}
-                  >
-                    This Month
+                onClick={clearAllFilters}
+                className="text-xs text-gray-400 hover:text-white underline"
+              >
+                Clear all
                   </button>
                 </div>
-              </div>
-            </div>
-          </div>
+          )}
         </div>
 
-        {/* Star Filter */}
-        <div className="flex flex-wrap gap-2 mb-4">
-          <button
-            onClick={() => setStarFilter(false)}
-            className={`px-3 py-1 rounded-lg transition-colors ${!starFilter ? 'bg-blue-600 text-white' : 'bg-gray-700/50 text-gray-300 hover:bg-gray-600/50'}`}
-          >
-            All Debates
-          </button>
-          <button
-            onClick={() => setStarFilter(true)}
-            className={`px-3 py-1 rounded-lg transition-colors ${starFilter ? 'bg-blue-600 text-white' : 'bg-gray-700/50 text-gray-300 hover:bg-gray-600/50'}`}
-          >
-            Starred
-          </button>
-        </div>
+
 
         {/* Loading, Error, or Debate List */}
-        <div className="space-y-4">
-          {loading ? (
+        <div className="space-y-3">
+          {loading && showLoadingIcon ? (
             <div className="text-center py-12">
-              <div className="inline-block animate-spin rounded-full h-8 w-8 border-t-2 border-b-2 border-blue-500"></div>
-              <div className="text-gray-400 mt-4">Loading debates...</div>
+              <div className="flex flex-col items-center gap-4">
+                <img 
+                  src="/android-chrome-512x512.png" 
+                  alt="Discourse Graph" 
+                  className="w-12 h-12 animate-spin"
+                />
+                <div className="text-gray-400">Loading debates...</div>
+              </div>
             </div>
           ) : error ? (
             <div className="text-center py-12">
@@ -970,12 +1312,12 @@ const CommunityLibrary: React.FC = () => {
                       </div>
 
                       <div className="mt-4 flex justify-between items-center">
-                        <button
-                          onClick={() => toggleDebateExpansion(debate.id)}
+                        <Link
+                          to={`/debate/${debate.id}`}
                           className="text-blue-400 hover:text-blue-300 transition-colors text-sm"
                         >
-                          {expandedDebateId === debate.id ? 'Hide Debate' : 'View Debate'}
-                        </button>
+                          View Discourse
+                        </Link>
                         <span className="text-sm text-gray-400">
                           Shared {new Date(debate.sharedAt).toLocaleDateString()}
                         </span>
@@ -991,30 +1333,142 @@ const CommunityLibrary: React.FC = () => {
                             className="mt-4 space-y-4"
                           >
                             {roundsLoading[debate.id] ? (
-                              <div className="text-gray-400">Loading debate rounds...</div>
+                              <div className="flex items-center justify-center gap-2 text-gray-400">
+                                <img 
+                                  src="/android-chrome-512x512.png" 
+                                  alt="Discourse Graph" 
+                                  className="w-4 h-4 animate-spin"
+                                />
+                                Loading debate rounds...
+                              </div>
                             ) : roundsError[debate.id] ? (
                               <div className="text-red-400">{roundsError[debate.id]}</div>
                             ) : debateRounds[debate.id] && debateRounds[debate.id].length === 0 ? (
                               <div className="text-gray-400">No rounds found for this debate.</div>
                             ) : debateRounds[debate.id] ? (
-                              debateRounds[debate.id].map((round, roundIndex) => (
-                                <div key={roundIndex} className="space-y-2">
-                                  <div className="flex justify-between items-center">
-                                    <h4 className="text-gray-300 font-medium">
-                                      Round {roundIndex + 1} - {round.speaker}
-                                    </h4>
+                              Array.from({ length: Math.ceil(debateRounds[debate.id].length / 2) }, (_, roundIndex) => {
+                                const roundNumber = roundIndex + 1;
+                                const firstSpeakerIndex = roundIndex * 2;
+                                const secondSpeakerIndex = firstSpeakerIndex + 1;
+                                const roundInfo = getRoundTitle(roundNumber);
+                                
+                                return (
+                                  <div key={roundNumber} className="space-y-4">
+                                    <div className="mb-6">
+                                      <h3 className="text-xl font-semibold text-gray-300 mb-2 border-b border-gray-700/50 pb-2">
+                                        {roundInfo.title}
+                                      </h3>
+                                      <p className="text-sm text-gray-400 italic">
+                                        {roundInfo.description}
+                                      </p>
+                                    </div>
+                                    
+                                    {debateRounds[debate.id][firstSpeakerIndex] && (
+                                      <motion.div
+                                        initial={{ opacity: 0, x: -20 }}
+                                        animate={{ opacity: 1, x: 0 }}
+                                        transition={{ duration: 0.5 }}
+                                        className="flex justify-start"
+                                      >
+                                        <div 
+                                          className="w-3/4 p-6 rounded-lg shadow-xl backdrop-blur-sm"
+                                          style={{ 
+                                            background: `linear-gradient(135deg, ${getStanceBackgroundColor(debate.model1.stance).replace('0.1', '0.2')}, ${getStanceBackgroundColor(debate.model1.stance).replace('0.1', '0.1')})`,
+                                            border: `1px solid ${getStanceBackgroundColor(debate.model1.stance).replace('0.1', '0.3')}`,
+                                          }}
+                                        >
+                                          <div className="flex items-center justify-between mb-3">
+                                            <div className="text-lg font-semibold" style={{ color: getStanceColor(debate.model1.stance) }}>
+                                              First Speaker
+                                            </div>
                                     <button
-                                      onClick={() => toggleRoundExpansion(`${debate.id}-${roundIndex}`)}
-                                      className="text-sm text-gray-400 hover:text-white transition-colors"
-                                    >
-                                      {expandedRounds.has(`${debate.id}-${roundIndex}`) ? 'Show Less' : 'Show More'}
+                                              onClick={() => toggleRoundExpansion(`${debate.id}-${firstSpeakerIndex}`)}
+                                              className="text-gray-400 hover:text-white transition-colors duration-200 flex items-center gap-1"
+                                            >
+                                              {expandedRounds.has(`${debate.id}-${firstSpeakerIndex}`) ? (
+                                                <>
+                                                  <span className="text-sm">Show Less</span>
+                                                  <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 15l7-7 7 7" />
+                                                  </svg>
+                                                </>
+                                              ) : (
+                                                <>
+                                                  <span className="text-sm">Show More</span>
+                                                  <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
+                                                  </svg>
+                                                </>
+                                              )}
                                     </button>
                                   </div>
-                                  <div className="text-gray-300">
-                                    {expandedRounds.has(`${debate.id}-${roundIndex}`) ? round.text : round.summary}
+                                                                                    <ThreadedDiscussion
+                                            debateId={debate.id}
+                                            roundIndex={firstSpeakerIndex}
+                                            speakerIndex={0}
+                                            content={expandedRounds.has(`${debate.id}-${firstSpeakerIndex}`) ? 
+                                              debateRounds[debate.id][firstSpeakerIndex].text : 
+                                              debateRounds[debate.id][firstSpeakerIndex].summary
+                                            }
+                                          />
                                   </div>
+                                      </motion.div>
+                                    )}
+                                    
+                                    {debateRounds[debate.id][secondSpeakerIndex] && (
+                                      <motion.div
+                                        initial={{ opacity: 0, x: 20 }}
+                                        animate={{ opacity: 1, x: 0 }}
+                                        transition={{ duration: 0.5 }}
+                                        className="flex justify-end"
+                                      >
+                                        <div 
+                                          className="w-3/4 p-6 rounded-lg shadow-xl backdrop-blur-sm"
+                                          style={{ 
+                                            background: `linear-gradient(135deg, ${getStanceBackgroundColor(debate.model2.stance).replace('0.1', '0.2')}, ${getStanceBackgroundColor(debate.model2.stance).replace('0.1', '0.1')})`,
+                                            border: `1px solid ${getStanceBackgroundColor(debate.model2.stance).replace('0.1', '0.3')}`,
+                                          }}
+                                        >
+                                          <div className="flex items-center justify-between mb-3">
+                                            <button
+                                              onClick={() => toggleRoundExpansion(`${debate.id}-${secondSpeakerIndex}`)}
+                                              className="text-gray-400 hover:text-white transition-colors duration-200 flex items-center gap-1"
+                                            >
+                                              {expandedRounds.has(`${debate.id}-${secondSpeakerIndex}`) ? (
+                                                <>
+                                                  <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 15l7-7 7 7" />
+                                                  </svg>
+                                                  <span className="text-sm">Show Less</span>
+                                                </>
+                                              ) : (
+                                                <>
+                                                  <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
+                                                  </svg>
+                                                  <span className="text-sm">Show More</span>
+                                                </>
+                                              )}
+                                            </button>
+                                            <div className="text-lg font-semibold" style={{ color: getStanceColor(debate.model2.stance) }}>
+                                              Second Speaker
                                 </div>
-                              ))
+                                          </div>
+                                          <ThreadedDiscussion
+                                            debateId={debate.id}
+                                            roundIndex={secondSpeakerIndex}
+                                            speakerIndex={1}
+                                            content={expandedRounds.has(`${debate.id}-${secondSpeakerIndex}`) ? 
+                                              debateRounds[debate.id][secondSpeakerIndex].text : 
+                                              debateRounds[debate.id][secondSpeakerIndex].summary
+                                            }
+                                          />
+                                        </div>
+                                      </motion.div>
+                                    )}
+                                  </div>
+                                );
+                              })
                             ) : (
                               // Fallback: show summaries from initial debate object if not expanded
                               debate.rounds && debate.rounds.map((round, roundIndex) => (

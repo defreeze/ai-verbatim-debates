@@ -16,7 +16,7 @@ const Navbar: React.FC = () => {
         <div className="flex items-center justify-between h-16">
           <div className="flex items-center">
             <Link to="/" className="flex-shrink-0 flex items-center h-16">
-              <img src="/android-chrome-512x512.png" alt="AI Verbatim Logo" className="h-10 w-10 object-contain" style={{ maxHeight: '2.5rem' }} />
+              <img src="/android-chrome-512x512.png" alt="DiscourseGraph Logo" className="h-10 w-10 object-contain" style={{ maxHeight: '2.5rem' }} />
             </Link>
             <div className="hidden md:block">
               <div className="ml-10 flex items-baseline space-x-4">

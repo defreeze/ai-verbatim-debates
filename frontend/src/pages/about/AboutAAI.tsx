@@ -5,9 +5,8 @@ const AboutAAI: React.FC = () => {
     <div className="max-w-4xl mx-auto">
       <section className="mb-12">
         <p className="text-lg text-gray-300 mb-6">
-        DiscourseGraph is a revolutionary platform designed to elevate the quality of AI-driven debates through structured, 
-          evidence-based discussions. Our platform combines cutting-edge AI technology with rigorous debate principles to 
-          create meaningful and insightful exchanges.
+        DiscourseGraph is the platform designed to motivate high quality discourse by using Ai as a base on which human discourse can focus and flourish. 
+        Our platform combines cutting-edge AI technology with rigorous debate principles to create meaningful and insightful exchanges.
         </p>
       </section>
 

@@ -10,6 +10,7 @@ import Account from './components/Account';
 import CommunityHub from './components/CommunityHub';
 import { useAuth } from './hooks/useAuth';
 import CommunityLibrary from './components/CommunityRankings';
+import DebateDetail from './pages/DebateDetail';
 
 // Protected Route component
 const ProtectedRoute: React.FC<{ children: React.ReactNode }> = ({ children }) => {
@@ -37,6 +38,7 @@ const App: React.FC = () => {
               <Route path="ranking" element={<CommunityLibrary />} />
               <Route path="history" element={<Navigate to="/community/history" replace />} />
             </Route>
+            <Route path="/debate/:debateId" element={<DebateDetail />} />
             <Route path="/engine" element={<DebateEngine />} />
             <Route path="/about" element={<About />} />
             <Route path="/login" element={<Login />} />

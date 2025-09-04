@@ -7,7 +7,7 @@ import { Link } from 'react-router-dom';
 import { incrementDebateCount, getDebateUsage } from '../services/debateUsage';
 import { doc, setDoc, collection, addDoc, getDoc } from 'firebase/firestore';
 import { db } from '../config/firebase';
-import type { PublicDebate } from '../components/CommunityRankings';
+import type { PublicDebate } from '../types/debate';
 
 interface AIModel {
   name: string;
@@ -195,6 +195,7 @@ const categories = [
 ];
 
 const DebateEngine: React.FC = () => {
+
   const { user } = useAuth();
   const [showAdvancedSettings, setShowAdvancedSettings] = useState(false);
   const [showGeneralSettings, setShowGeneralSettings] = useState(false);
@@ -679,64 +680,11 @@ const DebateEngine: React.FC = () => {
           initial={{ opacity: 0, y: -20 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.7, ease: "easeOut" }}
-          className="text-center mb-12 relative overflow-hidden"
+          className="text-center mb-8 relative overflow-hidden"
         >
-                     {/* Background scrolling topics */}
-           <div className="absolute inset-0 opacity-[0.15] overflow-hidden pointer-events-none">
-            <div className="grid grid-cols-3 gap-8 h-full">
-              {/* Left column - slower */}
-              <motion.div
-                initial={{ y: 0 }}
-                animate={{ y: "-50%" }}
-                transition={{
-                  duration: 25,
-                  repeat: Infinity,
-                  ease: "linear",
-                  repeatType: "loop"
-                }}
-                className="whitespace-pre-line text-right text-lg font-light"
-              >
-                {debateTopics.slice(0, 10).map(topic => 
-                  topic.length > 30 ? topic.substring(0, 30) + "..." : topic
-                ).join("\n\n")}
-              </motion.div>
 
-              {/* Middle column - faster */}
-              <motion.div
-                initial={{ y: "-25%" }}
-                animate={{ y: "-75%" }}
-                transition={{
-                  duration: 20,
-                  repeat: Infinity,
-                  ease: "linear",
-                  repeatType: "loop"
-                }}
-                className="whitespace-pre-line text-center text-lg font-light"
-              >
-                {debateTopics.slice(10, 20).map(topic => 
-                  topic.length > 40 ? topic.substring(0, 40) + "..." : topic
-                ).join("\n\n")}
-              </motion.div>
 
-              {/* Right column - slowest */}
-              <motion.div
-                initial={{ y: "-15%" }}
-                animate={{ y: "-65%" }}
-                transition={{
-                  duration: 30,
-                  repeat: Infinity,
-                  ease: "linear",
-                  repeatType: "loop"
-                }}
-                className="whitespace-pre-line text-left text-lg font-light"
-              >
-                {debateTopics.slice(20, 30).map(topic => 
-                  topic.length > 30 ? topic.substring(0, 30) + "..." : topic
-                ).join("\n\n")}
-              </motion.div>
-            </div>
-          </div>
-
+          {/* Verbatim Engine v1.5 
           <motion.h1 
             className="text-4xl md:text-5xl font-bold mb-8 leading-relaxed pb-2 bg-clip-text text-transparent bg-gradient-to-r from-blue-500 via-indigo-500 to-blue-600 relative z-10"
             initial={{ backgroundPosition: "0% 50%" }}
@@ -745,20 +693,19 @@ const DebateEngine: React.FC = () => {
           >
             Verbatim Engine v1.5
           </motion.h1>
+          */}
           <motion.p 
             className="text-xl text-gray-400 font-light tracking-wide relative z-10"
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            transition={{ delay: 0.3, duration: 0.7 }}
           >
-            Use our custom AI engine to generate rich, topic-driven discourse
+            Let your imagination run free and generate discourse on any topic
           </motion.p>
+                    
         </motion.div>
 
-        <div className="bg-blue-900/30 backdrop-blur-sm border border-blue-700/20 rounded-lg p-6 mb-6 shadow-xl">
-          <div className="space-y-6">
-            <div className="space-y-4">
-              <div className="grid grid-cols-[1fr,auto] gap-4 py-4">
+        <div className="relative bg-blue-900/15 backdrop-blur-sm rounded-lg p-4 mb-1 shadow-lg shadow-blue-500/20 hover:shadow-blue-500/30 transition-all duration-500">
+          <div className="space-y-3">
+            <div className="space-y-2">
+              <div className="grid grid-cols-[1fr,auto] gap-2 py-0">
                 <div className="relative">
                   <label className="block text-lg font-medium mb-2 bg-clip-text text-transparent bg-gradient-to-r from-blue-400 to-indigo-500">
                   Discourse topic
@@ -768,7 +715,7 @@ const DebateEngine: React.FC = () => {
               value={settings.topic}
               onChange={handleTopicChange}
                     className="w-full bg-gray-950/50 rounded-lg px-6 py-4 text-lg text-white focus:outline-none focus:ring-2 focus:ring-blue-500/50 focus:bg-gray-900/70 transition-all duration-300 backdrop-blur-sm"
-                    placeholder="Enter any  topic for discussion..."
+                    placeholder="Enter any topic to generate AI discourse..."
                     whileFocus={{ scale: 1.01 }}
                     transition={{ type: "spring", stiffness: 300, damping: 20 }}
                   />
@@ -849,7 +796,7 @@ const DebateEngine: React.FC = () => {
               )}
             </div>
 
-            <div className="border-t border-gray-700/50 my-6"></div>
+            <div className="border-t border-gray-700/50 my-1"></div>
 
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
               {[1, 2].map((modelNum) => {
@@ -961,6 +908,7 @@ const DebateEngine: React.FC = () => {
                 );
               })}
               </div>
+              </div>
           </div>
           </div>
 
@@ -970,7 +918,7 @@ const DebateEngine: React.FC = () => {
               disabled={!!(isDebating || !settings.topic)}
               className="bg-blue-600 hover:bg-blue-700 disabled:bg-gray-600 px-8 py-3 rounded-lg font-semibold transition-colors text-white"
             >
-              {isDebating ? 'discussion in progress...' : 'Begin discussion'}
+              {isDebating ? 'discussion in progress...' : 'Generate discourse'}
             </button>
           </div>
 
@@ -1240,8 +1188,7 @@ const DebateEngine: React.FC = () => {
             </div>
           </motion.div>
         )}
-      </div>
-    </div>
+        </div>
   );
 };
 

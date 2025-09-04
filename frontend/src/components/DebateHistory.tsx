@@ -264,7 +264,7 @@ const DebateHistory: React.FC = () => {
             Your Account Activity
           </h1>
           <p className="text-gray-400">
-            {debates.length} {debates.length === 1 ? 'debate' : 'debates'} in your history
+            {debates.length} {debates.length === 1 ? 'conversation' : 'conversations'} in your history
           </p>
         </div>
 
@@ -273,7 +273,7 @@ const DebateHistory: React.FC = () => {
           <div className="relative">
             <input
               type="text"
-              placeholder="Search debates..."
+              placeholder="Search discourse..."
               value={searchTerm}
               onChange={(e) => setSearchTerm(e.target.value)}
               className="w-full bg-gray-800/50 border border-gray-700/50 rounded-lg px-4 py-2 text-white placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"

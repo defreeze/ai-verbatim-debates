@@ -186,7 +186,7 @@ const CommunityLibrary: React.FC = () => {
 
               {/* Action Buttons */}
               <button className="px-4 py-2 bg-blue-600 hover:bg-blue-700 rounded-lg text-white text-sm transition-colors">
-                View Debate
+                View Discourse
               </button>
             </div>
           </motion.div>
